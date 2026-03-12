@@ -581,7 +581,9 @@
 // ═══════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNXucQ15-qlBt42KVYtEwFuRwZoT92Fcog-VXobBopeJ2DV40rzmCyFb1vatnEI-8Ebw/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjcBy_SU5kkBjYczzfIW9ZyPXWEy61E9Ae_V0i3bHLXbEahNAv7Atbw8LAJlItQDeUtg/exec";
+// NOTE: Apps Script doGet() must handle ?callback=fnName for JSONP:
+// if(e.parameter.callback){ return ContentService.createTextOutput(e.parameter.callback+'('+JSON.stringify(result)+')').setMimeType(ContentService.MimeType.JAVASCRIPT); }
 
 // ═══════════════════════════════════════════════════
 //  PRODUCT DATA
@@ -846,47 +848,69 @@ window.addEventListener('DOMContentLoaded', ()=>{
 // ═══════════════════════════════════════════════════
 //  DATA LOAD
 // ═══════════════════════════════════════════════════
-async function loadEntries(){
+function loadEntries(){
   setSyncing(true,'⟳ Loading...');
   hideError();
-  try{
-    const res = await fetch(APPS_SCRIPT_URL, {mode:'cors'});
-    const data = await res.json();
-    if(data.success){
-      allEntries = (data.entries||[]).map(e=>({
-        id: e['Timestamp'],
-        rowIndex: e.rowIndex,
-        date: e['Date']||'',
-        location: e['Location']||'',
-        productCode: e['Product Code']||'',
-        description: e['Description']||'',
-        category: e['Category']||'',
-        packaging: e['Packaging']||'',
-        weight: parseFloat(e['Weight (KGS)'])||0,
-        price: parseFloat(e['Unit Price (KES)'])||0,
-        qty: parseFloat(e['Quantity OOS'])||0,
-        revenue: parseFloat(e['Revenue Lost (KES)'])||0,
-        notes: e['Notes']||'',
-        timestamp: e['Timestamp']||'',
-      }));
-      populateLocFilter();
-      applyFilters();
-      updateSideStats();
-      document.getElementById('rec-count').textContent = allEntries.length;
-    } else {
-      showError(data.error||'Failed to load data from Google Sheets');
-    }
-  } catch(err){
-    const msg = err.message||'';
-    if(msg.includes('Failed to fetch')||msg.includes('NetworkError')){
-      showError('Cannot reach server — check your internet connection.');
-    } else {
-      showError('Load error: ' + (msg||'Unknown error'));
-    }
-  } finally {
+  // Use JSONP — works around CORS entirely for GET requests to Apps Script
+  const cbName = 'oosCallback_' + Date.now();
+  const script = document.createElement('script');
+  const timeout = setTimeout(()=>{
+    cleanup();
     setSyncing(false);
     startAutoSync();
+    showError('Request timed out — check your internet connection.');
+  }, 15000);
+
+  function cleanup(){
+    clearTimeout(timeout);
+    delete window[cbName];
+    if(script.parentNode) script.parentNode.removeChild(script);
   }
+
+  window[cbName] = function(data){
+    cleanup();
+    try{
+      if(data.success){
+        allEntries = (data.entries||[]).map(e=>({
+          id: e['Timestamp'],
+          rowIndex: e.rowIndex,
+          date: e['Date']||'',
+          location: e['Location']||'',
+          productCode: e['Product Code']||'',
+          description: e['Description']||'',
+          category: e['Category']||'',
+          packaging: e['Packaging']||'',
+          weight: parseFloat(e['Weight (KGS)'])||0,
+          price: parseFloat(e['Unit Price (KES)'])||0,
+          qty: parseFloat(e['Quantity OOS'])||0,
+          revenue: parseFloat(e['Revenue Lost (KES)'])||0,
+          notes: e['Notes']||'',
+          timestamp: e['Timestamp']||'',
+        }));
+        populateLocFilter();
+        applyFilters();
+        updateSideStats();
+        document.getElementById('rec-count').textContent = allEntries.length;
+      } else {
+        showError(data.error||'Failed to load data');
+      }
+    } catch(e){
+      showError('Error processing data: ' + e.message);
+    } finally {
+      setSyncing(false);
+      startAutoSync();
+    }
+  };
+
+  script.onerror = function(){
+    cleanup();
+    setSyncing(false);
+    startAutoSync();
+    showError('Cannot reach server — check your internet connection.');
+  };
+
+  script.src = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
+  document.head.appendChild(script);
 }
 
 // ═══════════════════════════════════════════════════
@@ -1025,42 +1049,32 @@ async function submitEntry(){
     qty, revenue: selectedProduct.price*qty, notes
   };
   try{
-    // Use text/plain to avoid CORS preflight; Apps Script accepts this
-    const res = await fetch(APPS_SCRIPT_URL, {
+    // Apps Script POST: send no-cors (no response body readable), then confirm via JSONP reload
+    await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
+      mode: 'no-cors',
       headers: {'Content-Type': 'text/plain'},
       body: JSON.stringify(payload)
     });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if(data.success){
-      selectedProduct=null;
-      document.getElementById('f-product-search').value='';
-      document.getElementById('f-qty').value='';
-      document.getElementById('f-notes').value='';
-      document.getElementById('product-strip').classList.remove('show');
-      document.getElementById('rev-preview').classList.remove('show');
-      const fb = document.getElementById('save-feedback');
-      fb.textContent = '✅ Successfully Submitted!';
-      fb.classList.add('show');
-      setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully Submitted!'; }, 3000);
-      unlockedLocation = null;
-      unlockedName = '';
-      document.getElementById('f-location').value = '';
-      updateLockBadge();
-      await loadEntries();
-    } else {
-      showError(data.error||'Save failed');
-    }
+    // POST succeeded (no-cors never throws unless truly offline)
+    selectedProduct=null;
+    document.getElementById('f-product-search').value='';
+    document.getElementById('f-qty').value='';
+    document.getElementById('f-notes').value='';
+    document.getElementById('product-strip').classList.remove('show');
+    document.getElementById('rev-preview').classList.remove('show');
+    const fb = document.getElementById('save-feedback');
+    fb.textContent = '✅ Successfully Submitted!';
+    fb.classList.add('show');
+    setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully Submitted!'; }, 3000);
+    unlockedLocation = null;
+    unlockedName = '';
+    document.getElementById('f-location').value = '';
+    updateLockBadge();
+    // Small delay then reload to reflect saved entry
+    setTimeout(()=> loadEntries(), 1500);
   } catch(e){
-    const msg = e.message||'';
-    if(msg.includes('Failed to fetch')||msg.includes('NetworkError')){
-      showError('Network error — please check your internet connection and try again.');
-    } else if(msg.includes('HTTP')){
-      showError('Server error (' + msg + ') — please try again shortly.');
-    } else {
-      showError('Submission failed: ' + (msg||'Unknown error') + '. Please try again.');
-    }
+    showError('Network error — please check your internet connection and try again.');
   } finally {
     btn.disabled=false; btn.textContent='✓ Submit';
   }
@@ -1073,16 +1087,14 @@ async function deleteEntry(rowIndex){
   if(!confirm('Delete this OOS entry from Google Sheets?')) return;
   setSyncing(true,'⟳ Deleting...');
   try{
-    const res = await fetch(APPS_SCRIPT_URL, {
+    await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
+      mode: 'no-cors',
       headers: {'Content-Type': 'text/plain'},
       body: JSON.stringify({action:'delete',rowIndex})
     });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if(data.success){ await loadEntries(); }
-    else showError(data.error||'Delete failed');
-  } catch(e){ showError('Delete failed: ' + (e.message||'Unknown error')); }
+    setTimeout(()=> loadEntries(), 1500);
+  } catch(e){ showError('Delete failed — check internet connection.'); }
   finally{ setSyncing(false); }
 }
 
