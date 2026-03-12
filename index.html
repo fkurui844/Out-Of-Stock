@@ -180,7 +180,7 @@
   }
   #submit-btn:hover:not(:disabled) { background: var(--green); }
   #submit-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
-  #save-feedback { font-size: 12px; color: var(--green); margin-left: 12px; opacity: 0; transition: opacity .3s; }
+  #save-feedback { font-size: 13px; font-weight: 600; color: var(--green); margin-left: 14px; opacity: 0; transition: opacity .4s; }
   #save-feedback.show { opacity: 1; }
 
   /* ── SIDE STATS ── */
@@ -480,8 +480,8 @@
       </div>
 
       <div style="display:flex;align-items:center">
-        <button id="submit-btn" onclick="submitEntry()">✓ Submit to Google Sheets</button>
-        <span id="save-feedback">✅ Saved to Google Sheets!</span>
+        <button id="submit-btn" onclick="submitEntry()">✓ Submit</button>
+        <span id="save-feedback">✅ Successfully Submitted!</span>
       </div>
     </div>
 
@@ -1030,9 +1030,9 @@ async function submitEntry(){
       document.getElementById('product-strip').classList.remove('show');
       document.getElementById('rev-preview').classList.remove('show');
       const fb = document.getElementById('save-feedback');
-      fb.textContent = '✅ Successfully submitted!';
+      fb.textContent = '✅ Successfully Submitted!';
       fb.classList.add('show');
-      setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully submitted!'; }, 3000);
+      setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully Submitted!'; }, 3000);
       unlockedLocation = null;
       unlockedName = '';
       document.getElementById('f-location').value = '';
@@ -1044,7 +1044,7 @@ async function submitEntry(){
   } catch(e){
     showError('Save failed — check internet connection');
   } finally {
-    btn.disabled=false; btn.textContent='✓ Submit to Google Sheets';
+    btn.disabled=false; btn.textContent='✓ Submit';
   }
 }
 
