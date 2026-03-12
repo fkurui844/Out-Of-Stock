@@ -850,7 +850,7 @@ async function loadEntries(){
   setSyncing(true,'⟳ Loading...');
   hideError();
   try{
-    const res = await fetch(APPS_SCRIPT_URL);
+    const res = await fetch(APPS_SCRIPT_URL, {mode:'cors'});
     const data = await res.json();
     if(data.success){
       allEntries = (data.entries||[]).map(e=>({
@@ -877,7 +877,12 @@ async function loadEntries(){
       showError(data.error||'Failed to load data from Google Sheets');
     }
   } catch(err){
-    showError('Cannot connect to Google Sheets. Check internet connection.');
+    const msg = err.message||'';
+    if(msg.includes('Failed to fetch')||msg.includes('NetworkError')){
+      showError('Cannot reach server — check your internet connection.');
+    } else {
+      showError('Load error: ' + (msg||'Unknown error'));
+    }
   } finally {
     setSyncing(false);
     startAutoSync();
@@ -1020,7 +1025,13 @@ async function submitEntry(){
     qty, revenue: selectedProduct.price*qty, notes
   };
   try{
-    const res = await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
+    // Use text/plain to avoid CORS preflight; Apps Script accepts this
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if(data.success){
       selectedProduct=null;
@@ -1042,7 +1053,14 @@ async function submitEntry(){
       showError(data.error||'Save failed');
     }
   } catch(e){
-    showError('Save failed — check internet connection');
+    const msg = e.message||'';
+    if(msg.includes('Failed to fetch')||msg.includes('NetworkError')){
+      showError('Network error — please check your internet connection and try again.');
+    } else if(msg.includes('HTTP')){
+      showError('Server error (' + msg + ') — please try again shortly.');
+    } else {
+      showError('Submission failed: ' + (msg||'Unknown error') + '. Please try again.');
+    }
   } finally {
     btn.disabled=false; btn.textContent='✓ Submit';
   }
@@ -1055,11 +1073,16 @@ async function deleteEntry(rowIndex){
   if(!confirm('Delete this OOS entry from Google Sheets?')) return;
   setSyncing(true,'⟳ Deleting...');
   try{
-    const res = await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'delete',rowIndex})});
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({action:'delete',rowIndex})
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if(data.success){ await loadEntries(); }
     else showError(data.error||'Delete failed');
-  } catch{ showError('Delete failed'); }
+  } catch(e){ showError('Delete failed: ' + (e.message||'Unknown error')); }
   finally{ setSyncing(false); }
 }
 
