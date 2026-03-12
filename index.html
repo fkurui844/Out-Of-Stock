@@ -318,17 +318,35 @@
   #pwd-overlay.show { display: flex; }
   #pwd-modal {
     background: var(--bg2); border: 1px solid var(--border2);
-    border-radius: 16px; padding: 36px 40px; width: 360px; max-width: 90vw;
+    border-radius: 16px; padding: 36px 40px; width: 380px; max-width: 90vw;
     box-shadow: 0 24px 80px rgba(0,0,0,0.6);
     animation: fadein .2s ease;
   }
   #pwd-modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
   #pwd-modal p  { font-size: 12px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
+
+  /* field label inside modal */
+  .modal-field { margin-bottom: 14px; }
+  .modal-field-label {
+    display: block; font-size: 10px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px;
+  }
+
+  #pwd-name {
+    width: 100%; background: var(--bg); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 11px 14px; color: var(--text);
+    font-family: var(--sans); font-size: 14px; outline: none;
+    transition: border .15s;
+    color-scheme: dark;
+  }
+  #pwd-name:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px var(--green-glow); }
+  #pwd-name::placeholder { color: var(--text3); }
+
   #pwd-input {
     width: 100%; background: var(--bg); border: 1px solid var(--border2);
     border-radius: 8px; padding: 11px 14px; color: var(--text);
     font-family: var(--mono); font-size: 15px; outline: none;
-    letter-spacing: .12em; transition: border .15s; margin-bottom: 10px;
+    letter-spacing: .12em; transition: border .15s;
     color-scheme: dark;
   }
   #pwd-input:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px var(--green-glow); }
@@ -345,13 +363,18 @@
     cursor: pointer; margin-top: 8px; transition: all .15s;
   }
   #pwd-cancel:hover { border-color: var(--text2); color: var(--text); }
+
+  /* unlocked badge — now shows name */
   .loc-unlocked-badge {
     display: inline-flex; align-items: center; gap: 6px;
     background: var(--green-glow); border: 1px solid var(--green-dim);
     color: var(--green); border-radius: 6px; padding: 4px 10px;
     font-size: 11px; font-weight: 600; margin-left: 10px;
   }
-
+  .loc-unlocked-badge .badge-name {
+    color: var(--text); font-weight: 400; border-left: 1px solid var(--green-dim);
+    padding-left: 8px; margin-left: 2px;
+  }
 </style>
 </head>
 <body>
@@ -696,6 +719,7 @@ let filteredEntries = [];
 let selectedProduct = null;
 let currentView = 'entry';
 let unlockedLocation = null;
+let unlockedName = '';
 
 // ═══════════════════════════════════════════════════
 //  HELPERS
@@ -720,22 +744,32 @@ function setSyncing(on,msg=''){
 // ═══════════════════════════════════════════════════
 function onLocationChange(){
   const loc = document.getElementById('f-location').value;
-  if(!loc){ unlockedLocation=null; updateLockBadge(); return; }
-  if(unlockedLocation === loc) return; // already unlocked
-  // Ask for password
+  if(!loc){ unlockedLocation=null; unlockedName=''; updateLockBadge(); return; }
+  if(unlockedLocation === loc) return;
   unlockedLocation = null;
+  unlockedName = '';
   updateLockBadge();
   document.getElementById('pwd-loc-name').textContent = loc;
+  document.getElementById('pwd-name').value = '';
   document.getElementById('pwd-input').value = '';
   document.getElementById('pwd-error').textContent = '';
   document.getElementById('pwd-overlay').classList.add('show');
-  setTimeout(()=>document.getElementById('pwd-input').focus(), 100);
+  setTimeout(()=>document.getElementById('pwd-name').focus(), 100);
 }
+
 function checkPassword(){
   const loc = document.getElementById('f-location').value;
+  const name = document.getElementById('pwd-name').value.trim();
   const entered = document.getElementById('pwd-input').value;
+
+  if(!name){
+    document.getElementById('pwd-error').textContent = '❌ Please enter your name.';
+    document.getElementById('pwd-name').focus();
+    return;
+  }
   if(entered === LOCATION_PASSWORDS[loc]){
     unlockedLocation = loc;
+    unlockedName = name;
     document.getElementById('pwd-overlay').classList.remove('show');
     document.getElementById('pwd-error').textContent = '';
     updateLockBadge();
@@ -745,12 +779,15 @@ function checkPassword(){
     document.getElementById('pwd-input').focus();
   }
 }
+
 function cancelPassword(){
   document.getElementById('f-location').value = '';
   document.getElementById('pwd-overlay').classList.remove('show');
   unlockedLocation = null;
+  unlockedName = '';
   updateLockBadge();
 }
+
 function updateLockBadge(){
   const existing = document.getElementById('loc-unlock-badge');
   if(existing) existing.remove();
@@ -758,7 +795,8 @@ function updateLockBadge(){
     const badge = document.createElement('span');
     badge.id = 'loc-unlock-badge';
     badge.className = 'loc-unlocked-badge';
-    badge.innerHTML = '🔓 ' + unlockedLocation + ' unlocked';
+    badge.innerHTML = '🔓 ' + esc(unlockedLocation) + ' unlocked'
+      + (unlockedName ? `<span class="badge-name">👤 ${esc(unlockedName)}</span>` : '');
     document.getElementById('f-location').after(badge);
   }
 }
@@ -772,6 +810,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
   loadEntries();
   document.addEventListener('click', e=>{
     if(!e.target.closest('.dd-wrap')) closeDropdown();
+  });
+
+  // Allow Tab from name → password field
+  document.getElementById('pwd-name').addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ document.getElementById('pwd-input').focus(); }
+  });
+  document.getElementById('pwd-input').addEventListener('keydown', e=>{
+    if(e.key==='Enter') checkPassword();
   });
 });
 
@@ -941,6 +987,7 @@ async function submitEntry(){
   hideError();
   const payload = {
     date, location:loc,
+    recordedBy: unlockedName,
     productCode: selectedProduct.code,
     description: selectedProduct.desc,
     category: selectedProduct.cat,
@@ -953,7 +1000,6 @@ async function submitEntry(){
     const res = await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
     const data = await res.json();
     if(data.success){
-      // Reset form
       selectedProduct=null;
       document.getElementById('f-product-search').value='';
       document.getElementById('f-qty').value='';
@@ -964,8 +1010,8 @@ async function submitEntry(){
       fb.textContent = '✅ Successfully submitted!';
       fb.classList.add('show');
       setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully submitted!'; }, 3000);
-      // Reset location lock after successful submit so next entry re-authenticates
       unlockedLocation = null;
+      unlockedName = '';
       document.getElementById('f-location').value = '';
       updateLockBadge();
       await loadEntries();
@@ -1042,7 +1088,6 @@ function renderConsolidated(){
   document.getElementById('sc-locs').textContent=locs.length;
   document.getElementById('sc-cats').textContent=cats.length;
 
-  // Location breakdown
   const locEl=document.getElementById('loc-breakdown');
   if(!locs.length){ locEl.innerHTML='<div style="color:var(--text3);font-size:12px">No data</div>'; }
   else locEl.innerHTML=Object.entries(byLoc).sort((a,b)=>b[1]-a[1]).map(([loc,rev])=>`
@@ -1052,7 +1097,6 @@ function renderConsolidated(){
       <div style="font-size:10px;color:var(--text3);margin-top:3px">${total?((rev/total)*100).toFixed(1):0}% of total</div>
     </div>`).join('');
 
-  // Category breakdown
   const catEl=document.getElementById('cat-breakdown');
   if(!cats.length){ catEl.innerHTML='<div style="color:var(--text3);font-size:12px">No data</div>'; }
   else catEl.innerHTML=Object.entries(byCat).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>{
@@ -1062,7 +1106,6 @@ function renderConsolidated(){
       <div class="bar-track"><div class="bar-fill" style="width:${total?((d.total/total)*100).toFixed(1):0}%;background:${c}"></div></div>
     </div>`;}).join('');
 
-  // Per-category tables
   const tablesEl=document.getElementById('cat-tables');
   if(!cats.length){ tablesEl.innerHTML=''; }
   else tablesEl.innerHTML=Object.entries(byCat).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>{
@@ -1088,7 +1131,6 @@ function renderConsolidated(){
       </table></div>
     </div>`; }).join('');
 
-  // Grand total
   const gt=document.getElementById('grand-total');
   gt.style.display=filteredEntries.length?'flex':'none';
   document.getElementById('gt-val').textContent=fmt(total);
@@ -1129,8 +1171,18 @@ function updateSideStats(){
 <div id="pwd-overlay">
   <div id="pwd-modal">
     <h2>🔐 Location Access</h2>
-    <p id="pwd-prompt">Enter the password for <strong id="pwd-loc-name"></strong> to record OOS data.</p>
-    <input type="password" id="pwd-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter')checkPassword()">
+    <p>Enter your name and the password for <strong id="pwd-loc-name"></strong> to record OOS data.</p>
+
+    <div class="modal-field">
+      <label class="modal-field-label" for="pwd-name">Your Name *</label>
+      <input type="text" id="pwd-name" placeholder="e.g. Jane Mwangi" autocomplete="name">
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-field-label" for="pwd-input">Location Password *</label>
+      <input type="password" id="pwd-input" placeholder="Enter password...">
+    </div>
+
     <div id="pwd-error"></div>
     <button id="pwd-submit" onclick="checkPassword()">Unlock Location</button>
     <button id="pwd-cancel" onclick="cancelPassword()">Cancel</button>
