@@ -385,7 +385,7 @@
     <div class="logo-icon">📦</div>
     <div>
       <div class="logo-text">OOS Tracker</div>
-      <div class="logo-sub"><span class="conn-dot"></span>Live · Google Sheets</div>
+      <div class="logo-sub"><span class="conn-dot"></span>Live · <span id="sync-countdown">syncing...</span></div>
     </div>
   </div>
   <div class="nav-tabs">
@@ -394,7 +394,6 @@
     <button class="nav-btn" onclick="switchView('consolidated')">📊 Consolidated</button>
   </div>
   <div class="header-actions">
-    <span id="sync-status"></span>
     <button class="refresh-btn" onclick="loadEntries()">↻ Refresh</button>
   </div>
 </div>
@@ -470,8 +469,8 @@
           <input type="number" min="0" class="field-input" id="f-qty" placeholder="0" oninput="updateRevPreview()">
         </div>
         <div class="field-group">
-          <label class="field-label">Notes / Reason</label>
-          <input class="field-input" id="f-notes" placeholder="Optional reason or comments...">
+          <label class="field-label">Reason for Lost Sale *</label>
+          <input class="field-input" id="f-notes" placeholder="e.g. Supplier delay, overstock elsewhere...">
         </div>
       </div>
 
@@ -734,9 +733,9 @@ function catBadge(cat){
 function showError(msg){ document.getElementById('error-msg').textContent='⚠️ '+msg; document.getElementById('error-bar').classList.add('show'); }
 function hideError(){ document.getElementById('error-bar').classList.remove('show'); }
 function setSyncing(on,msg=''){
-  const el=document.getElementById('sync-status');
-  el.textContent=on?(msg||'⟳ Syncing...'):'';
-  el.className=on?'syncing':'';
+  const el=document.getElementById('sync-countdown');
+  if(on){ el.textContent=msg||'⟳ syncing...'; el.style.color='#388bfd'; }
+  else { el.style.color=''; updateCountdownDisplay(); }
 }
 
 // ═══════════════════════════════════════════════════
@@ -804,10 +803,33 @@ function updateLockBadge(){
 // ═══════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════
+let syncInterval = null;
+let syncCountdown = 30;
+
+function startAutoSync(){
+  if(syncInterval) clearInterval(syncInterval);
+  syncCountdown = 30;
+  updateCountdownDisplay();
+  syncInterval = setInterval(()=>{
+    syncCountdown--;
+    updateCountdownDisplay();
+    if(syncCountdown <= 0){
+      syncCountdown = 30;
+      loadEntries();
+    }
+  }, 1000);
+}
+
+function updateCountdownDisplay(){
+  const el = document.getElementById('sync-countdown');
+  if(el) el.textContent = syncCountdown <= 5 ? `syncing in ${syncCountdown}s...` : `next sync in ${syncCountdown}s`;
+}
+
 window.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('f-date').value = today();
   populateCatFilter();
   loadEntries();
+  startAutoSync();
   document.addEventListener('click', e=>{
     if(!e.target.closest('.dd-wrap')) closeDropdown();
   });
@@ -858,6 +880,7 @@ async function loadEntries(){
     showError('Cannot connect to Google Sheets. Check internet connection.');
   } finally {
     setSyncing(false);
+    startAutoSync();
   }
 }
 
@@ -975,7 +998,7 @@ async function submitEntry(){
   const date = document.getElementById('f-date').value;
   const qty = parseFloat(document.getElementById('f-qty').value);
   const notes = document.getElementById('f-notes').value.trim();
-  if(!loc||!selectedProduct||!qty){ showError('Please fill in Location, Product and Quantity'); return; }
+  if(!loc||!selectedProduct||!qty||!notes){ showError('Please fill in Location, Product, Quantity and Reason for Lost Sale'); return; }
   if(unlockedLocation !== loc){
     showError('Please unlock ' + loc + ' with the correct password before submitting.');
     document.getElementById('f-location').value = loc;
