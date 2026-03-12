@@ -308,6 +308,50 @@
     #app { padding: 14px; }
     .summary-grid { grid-template-columns: 1fr 1fr; }
   }
+
+  /* ── PASSWORD MODAL ── */
+  #pwd-overlay {
+    display: none; position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+    align-items: center; justify-content: center;
+  }
+  #pwd-overlay.show { display: flex; }
+  #pwd-modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 36px 40px; width: 360px; max-width: 90vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    animation: fadein .2s ease;
+  }
+  #pwd-modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  #pwd-modal p  { font-size: 12px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
+  #pwd-input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 11px 14px; color: var(--text);
+    font-family: var(--mono); font-size: 15px; outline: none;
+    letter-spacing: .12em; transition: border .15s; margin-bottom: 10px;
+    color-scheme: dark;
+  }
+  #pwd-input:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px var(--green-glow); }
+  #pwd-error { font-size: 12px; color: var(--red); min-height: 18px; margin-bottom: 14px; }
+  #pwd-submit {
+    width: 100%; background: var(--green-dim); color: #fff; border: none;
+    border-radius: 8px; padding: 12px; font-family: var(--sans); font-weight: 600;
+    font-size: 14px; cursor: pointer; transition: background .15s;
+  }
+  #pwd-submit:hover { background: var(--green); }
+  #pwd-cancel {
+    width: 100%; background: none; border: 1px solid var(--border2); color: var(--text2);
+    border-radius: 8px; padding: 10px; font-family: var(--sans); font-size: 13px;
+    cursor: pointer; margin-top: 8px; transition: all .15s;
+  }
+  #pwd-cancel:hover { border-color: var(--text2); color: var(--text); }
+  .loc-unlocked-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--green-glow); border: 1px solid var(--green-dim);
+    color: var(--green); border-radius: 6px; padding: 4px 10px;
+    font-size: 11px; font-weight: 600; margin-left: 10px;
+  }
+
 </style>
 </head>
 <body>
@@ -363,7 +407,7 @@
       <div class="two-col">
         <div class="field-group">
           <label class="field-label">Location / Branch *</label>
-          <select class="field-input" id="f-location">
+          <select class="field-input" id="f-location" onchange="onLocationChange()">
             <option value="">— Select Location —</option>
             <option value="Nairobi">Nairobi</option>
             <option value="Nakuru">Nakuru</option>
@@ -631,12 +675,27 @@ const CAT_COLORS = {
 };
 
 // ═══════════════════════════════════════════════════
+//  LOCATION PASSWORDS
+// ═══════════════════════════════════════════════════
+const LOCATION_PASSWORDS = {
+  "Nairobi":   "Nairobi123",
+  "Nakuru":    "Nakuru123",
+  "Kisumu":    "Kisumu123",
+  "Mombasa":   "Mombasa123",
+  "Nanyuki":   "Nanyuki123",
+  "Sotik":     "Sotik123",
+  "Eldoret":   "Eldoret123",
+  "Nyahururu": "Nyahururu123"
+};
+
+// ═══════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════
 let allEntries = [];
 let filteredEntries = [];
 let selectedProduct = null;
 let currentView = 'entry';
+let unlockedLocation = null;
 
 // ═══════════════════════════════════════════════════
 //  HELPERS
@@ -654,6 +713,54 @@ function setSyncing(on,msg=''){
   const el=document.getElementById('sync-status');
   el.textContent=on?(msg||'⟳ Syncing...'):'';
   el.className=on?'syncing':'';
+}
+
+// ═══════════════════════════════════════════════════
+//  PASSWORD GATE
+// ═══════════════════════════════════════════════════
+function onLocationChange(){
+  const loc = document.getElementById('f-location').value;
+  if(!loc){ unlockedLocation=null; updateLockBadge(); return; }
+  if(unlockedLocation === loc) return; // already unlocked
+  // Ask for password
+  unlockedLocation = null;
+  updateLockBadge();
+  document.getElementById('pwd-loc-name').textContent = loc;
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-error').textContent = '';
+  document.getElementById('pwd-overlay').classList.add('show');
+  setTimeout(()=>document.getElementById('pwd-input').focus(), 100);
+}
+function checkPassword(){
+  const loc = document.getElementById('f-location').value;
+  const entered = document.getElementById('pwd-input').value;
+  if(entered === LOCATION_PASSWORDS[loc]){
+    unlockedLocation = loc;
+    document.getElementById('pwd-overlay').classList.remove('show');
+    document.getElementById('pwd-error').textContent = '';
+    updateLockBadge();
+  } else {
+    document.getElementById('pwd-error').textContent = '❌ Incorrect password. Please try again.';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+function cancelPassword(){
+  document.getElementById('f-location').value = '';
+  document.getElementById('pwd-overlay').classList.remove('show');
+  unlockedLocation = null;
+  updateLockBadge();
+}
+function updateLockBadge(){
+  const existing = document.getElementById('loc-unlock-badge');
+  if(existing) existing.remove();
+  if(unlockedLocation){
+    const badge = document.createElement('span');
+    badge.id = 'loc-unlock-badge';
+    badge.className = 'loc-unlocked-badge';
+    badge.innerHTML = '🔓 ' + unlockedLocation + ' unlocked';
+    document.getElementById('f-location').after(badge);
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -823,6 +930,12 @@ async function submitEntry(){
   const qty = parseFloat(document.getElementById('f-qty').value);
   const notes = document.getElementById('f-notes').value.trim();
   if(!loc||!selectedProduct||!qty){ showError('Please fill in Location, Product and Quantity'); return; }
+  if(unlockedLocation !== loc){
+    showError('Please unlock ' + loc + ' with the correct password before submitting.');
+    document.getElementById('f-location').value = loc;
+    onLocationChange();
+    return;
+  }
   const btn = document.getElementById('submit-btn');
   btn.disabled=true; btn.textContent='⟳ Saving...';
   hideError();
@@ -848,7 +961,13 @@ async function submitEntry(){
       document.getElementById('product-strip').classList.remove('show');
       document.getElementById('rev-preview').classList.remove('show');
       const fb = document.getElementById('save-feedback');
-      fb.classList.add('show'); setTimeout(()=>fb.classList.remove('show'),2500);
+      fb.textContent = '✅ Successfully submitted!';
+      fb.classList.add('show');
+      setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully submitted!'; }, 3000);
+      // Reset location lock after successful submit so next entry re-authenticates
+      unlockedLocation = null;
+      document.getElementById('f-location').value = '';
+      updateLockBadge();
       await loadEntries();
     } else {
       showError(data.error||'Save failed');
@@ -1005,5 +1124,18 @@ function updateSideStats(){
     </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
 }
 </script>
+
+<!-- ═══ PASSWORD MODAL ═══ -->
+<div id="pwd-overlay">
+  <div id="pwd-modal">
+    <h2>🔐 Location Access</h2>
+    <p id="pwd-prompt">Enter the password for <strong id="pwd-loc-name"></strong> to record OOS data.</p>
+    <input type="password" id="pwd-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter')checkPassword()">
+    <div id="pwd-error"></div>
+    <button id="pwd-submit" onclick="checkPassword()">Unlock Location</button>
+    <button id="pwd-cancel" onclick="cancelPassword()">Cancel</button>
+  </div>
+</div>
+
 </body>
 </html>
