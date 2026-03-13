@@ -305,6 +305,75 @@
   .export-scope-btn.active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); font-weight: 600; }
   @media (max-width: 700px) { .export-grid { grid-template-columns: 1fr; } }
 
+  /* ── PREVIEW MODAL ── */
+  #preview-overlay {
+    display: none; position: fixed; inset: 0; z-index: 998;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+    align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto;
+  }
+  #preview-overlay.show { display: flex; }
+  #preview-modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 16px; width: 100%; max-width: 900px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    animation: fadein .2s ease; overflow: hidden;
+  }
+  #preview-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 24px; border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  #preview-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  #preview-subtitle { font-size: 11px; color: var(--text3); margin-top: 3px; font-family: var(--mono); }
+  #preview-close {
+    background: none; border: 1px solid var(--border2); color: var(--text2);
+    border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 15px;
+    transition: all .15s;
+  }
+  #preview-close:hover { border-color: var(--red-dim); color: var(--red); }
+  #preview-table-wrap {
+    overflow-x: auto; max-height: 420px; overflow-y: auto;
+  }
+  #preview-table {
+    width: 100%; border-collapse: collapse; font-size: 12px;
+  }
+  #preview-table thead th {
+    position: sticky; top: 0; background: var(--bg);
+    padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 600;
+    color: var(--text3); text-transform: uppercase; letter-spacing: .06em;
+    border-bottom: 1px solid var(--border2); white-space: nowrap; z-index: 2;
+  }
+  #preview-table tbody td {
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    color: var(--text); white-space: nowrap; max-width: 260px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  #preview-table tbody tr:hover td { background: var(--bg3); }
+  #preview-table tbody tr:last-child td {
+    background: var(--bg); font-weight: 700; border-top: 2px solid var(--border2);
+    border-bottom: none; color: var(--green);
+  }
+  #preview-footer {
+    padding: 16px 24px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    background: var(--bg3); flex-wrap: wrap;
+  }
+  #preview-info { font-size: 12px; color: var(--text2); }
+  #preview-info strong { color: var(--text); }
+  #preview-download-btn {
+    background: var(--green-dim); color: #fff; border: none;
+    border-radius: 8px; padding: 10px 22px; font-family: var(--sans);
+    font-weight: 600; font-size: 13px; cursor: pointer; transition: background .15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #preview-download-btn:hover { background: var(--green); }
+  #preview-cancel-btn {
+    background: none; border: 1px solid var(--border2); color: var(--text2);
+    border-radius: 8px; padding: 9px 18px; font-family: var(--sans);
+    font-size: 13px; cursor: pointer; transition: all .15s;
+  }
+  #preview-cancel-btn:hover { border-color: var(--text2); color: var(--text); }
+
   /* ── ALERTS ── */
   #error-bar {
     display: none; background: #1a0a0a; border: 1px solid var(--red-dim);
@@ -608,42 +677,42 @@
       </div>
 
       <div class="export-grid" style="margin-top:14px">
-        <button class="export-btn" onclick="exportAllData()">
+        <button class="export-btn" onclick="previewData('all')">
           <span class="export-btn-icon">📊</span>
           <div>
             <div class="export-btn-label">Full OOS Data</div>
             <div class="export-btn-sub">All columns — one row per entry</div>
           </div>
         </button>
-        <button class="export-btn" onclick="exportByLocation()">
+        <button class="export-btn" onclick="previewData('location')">
           <span class="export-btn-icon">📍</span>
           <div>
             <div class="export-btn-label">Summary by Location</div>
             <div class="export-btn-sub">Revenue lost per branch</div>
           </div>
         </button>
-        <button class="export-btn" onclick="exportByCategory()">
+        <button class="export-btn" onclick="previewData('category')">
           <span class="export-btn-icon">🗂️</span>
           <div>
             <div class="export-btn-label">Summary by Category</div>
             <div class="export-btn-sub">Revenue lost per product category</div>
           </div>
         </button>
-        <button class="export-btn" onclick="exportByProduct()">
+        <button class="export-btn" onclick="previewData('product')">
           <span class="export-btn-icon">📦</span>
           <div>
             <div class="export-btn-label">Summary by Product</div>
             <div class="export-btn-sub">Top OOS products ranked by revenue</div>
           </div>
         </button>
-        <button class="export-btn" onclick="exportByDate()">
+        <button class="export-btn" onclick="previewData('date')">
           <span class="export-btn-icon">📅</span>
           <div>
             <div class="export-btn-label">Summary by Date</div>
             <div class="export-btn-sub">Daily revenue lost breakdown</div>
           </div>
         </button>
-        <button class="export-btn" onclick="exportPivot()">
+        <button class="export-btn" onclick="previewData('pivot')">
           <span class="export-btn-icon">🔁</span>
           <div>
             <div class="export-btn-label">Location × Category Pivot</div>
@@ -1286,9 +1355,135 @@ function renderConsolidated(){
 }
 
 // ═══════════════════════════════════════════════════
-//  EXPORT
+//  EXPORT + PREVIEW
 // ═══════════════════════════════════════════════════
 let exportScope = 'filtered';
+let pendingDownload = null; // fn to call on confirm
+
+const EXPORT_META = {
+  all:      { icon:'📊', label:'Full OOS Data',             sub:'All columns — one row per entry' },
+  location: { icon:'📍', label:'Summary by Location',       sub:'Revenue lost per branch' },
+  category: { icon:'🗂️', label:'Summary by Category',       sub:'Revenue lost per product category' },
+  product:  { icon:'📦', label:'Summary by Product',        sub:'Top OOS products ranked by revenue' },
+  date:     { icon:'📅', label:'Summary by Date',           sub:'Daily revenue lost breakdown' },
+  pivot:    { icon:'🔁', label:'Location × Category Pivot', sub:'Cross-tabulation of all branches' },
+};
+
+function previewData(type){
+  const data = getExportData();
+  if(!data.length){ showError('No data to export'); return; }
+
+  let rows, filename;
+  if(type==='all'){
+    rows = buildAllRows(data);
+    filename = `OOS_Full_Data_${today()}.csv`;
+  } else if(type==='location'){
+    rows = buildLocationRows(data);
+    filename = `OOS_By_Location_${today()}.csv`;
+  } else if(type==='category'){
+    rows = buildCategoryRows(data);
+    filename = `OOS_By_Category_${today()}.csv`;
+  } else if(type==='product'){
+    rows = buildProductRows(data);
+    filename = `OOS_By_Product_${today()}.csv`;
+  } else if(type==='date'){
+    rows = buildDateRows(data);
+    filename = `OOS_By_Date_${today()}.csv`;
+  } else if(type==='pivot'){
+    rows = buildPivotRows(data);
+    filename = `OOS_Pivot_${today()}.csv`;
+  }
+
+  const meta = EXPORT_META[type];
+  document.getElementById('preview-title').innerHTML = meta.icon + ' ' + meta.label;
+  document.getElementById('preview-subtitle').textContent = data.length + ' records · ' + meta.sub;
+
+  // Render table
+  const header = rows[0];
+  const body = rows.slice(1);
+  document.getElementById('preview-thead').innerHTML =
+    '<tr>' + header.map(h => `<th>${esc(String(h))}</th>`).join('') + '</tr>';
+
+  const isTotal = (row) => String(row[0]).includes('TOTAL');
+  document.getElementById('preview-tbody').innerHTML = body.map(row =>
+    `<tr>${row.map((cell,i) => {
+      const s = String(cell==null?'':cell);
+      const isMoney = header[i] && String(header[i]).includes('KES');
+      const color = isTotal(row) ? '' : (isMoney && parseFloat(s)>0 ? 'color:var(--red)' : '');
+      return `<td style="${color}font-family:${isMoney||!isNaN(parseFloat(s))&&s!==''?'var(--mono)':'inherit'}">${esc(s)}</td>`;
+    }).join('')}</tr>`
+  ).join('');
+
+  const dataRows = body.filter(r => !isTotal(r)).length;
+  document.getElementById('preview-info').innerHTML =
+    `<strong>${dataRows}</strong> data rows · File: <span style="font-family:var(--mono);color:var(--text3)">${filename}</span>`;
+
+  pendingDownload = () => downloadCSV(filename, rows);
+  document.getElementById('preview-overlay').classList.add('show');
+}
+
+function confirmDownload(){
+  if(pendingDownload) pendingDownload();
+  closePreview();
+}
+
+function closePreview(){
+  document.getElementById('preview-overlay').classList.remove('show');
+  pendingDownload = null;
+}
+
+// Close on backdrop click
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('preview-overlay').addEventListener('click', e=>{
+    if(e.target === document.getElementById('preview-overlay')) closePreview();
+  });
+});
+
+// ── Row builders ──
+function buildAllRows(data){
+  const header = ['Date','Location','Recorded By','Product Code','Description','Category','Packaging','Weight (KGS)','Unit Price (KES)','Quantity OOS','Revenue Lost (KES)','Reason for Lost Sale'];
+  const rows = data.map(e=>[e.date,e.location,e.recordedBy||'',e.productCode,e.description,e.category,e.packaging,e.weight,fmtNum(e.price),e.qty,fmtNum(e.revenue),e.notes]);
+  return [header, ...rows];
+}
+function buildLocationRows(data){
+  const map = {};
+  data.forEach(e=>{ if(!map[e.location]) map[e.location]={entries:0,qty:0,revenue:0}; map[e.location].entries++; map[e.location].qty+=e.qty; map[e.location].revenue+=e.revenue; });
+  const header = ['Location','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
+  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue).map(([loc,d])=>[loc,d.entries,d.qty,fmtNum(d.revenue)]);
+  return [header, ...rows, ['TOTAL','','',fmtNum(rows.reduce((s,r)=>s+r[3],0))]];
+}
+function buildCategoryRows(data){
+  const map = {};
+  data.forEach(e=>{ if(!map[e.category]) map[e.category]={entries:0,qty:0,revenue:0}; map[e.category].entries++; map[e.category].qty+=e.qty; map[e.category].revenue+=e.revenue; });
+  const header = ['Category','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
+  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue).map(([cat,d])=>[cat,d.entries,d.qty,fmtNum(d.revenue)]);
+  return [header, ...rows, ['TOTAL','','',fmtNum(rows.reduce((s,r)=>s+r[3],0))]];
+}
+function buildProductRows(data){
+  const map = {};
+  data.forEach(e=>{ const k=e.productCode+'||'+e.description; if(!map[k]) map[k]={code:e.productCode,desc:e.description,cat:e.category,pkg:e.packaging,price:e.price,entries:0,qty:0,revenue:0}; map[k].entries++; map[k].qty+=e.qty; map[k].revenue+=e.revenue; });
+  const header = ['Product Code','Description','Category','Packaging','Unit Price (KES)','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
+  const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue).map(d=>[d.code,d.desc,d.cat,d.pkg,fmtNum(d.price),d.entries,d.qty,fmtNum(d.revenue)]);
+  return [header, ...rows];
+}
+function buildDateRows(data){
+  const map = {};
+  data.forEach(e=>{ if(!map[e.date]) map[e.date]={entries:0,qty:0,revenue:0}; map[e.date].entries++; map[e.date].qty+=e.qty; map[e.date].revenue+=e.revenue; });
+  const header = ['Date','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
+  const rows = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).map(([date,d])=>[date,d.entries,d.qty,fmtNum(d.revenue)]);
+  return [header, ...rows, ['TOTAL','','',fmtNum(rows.reduce((s,r)=>s+r[3],0))]];
+}
+function buildPivotRows(data){
+  const locs = [...new Set(data.map(e=>e.location))].sort();
+  const cats = [...new Set(data.map(e=>e.category))].sort();
+  const pivot = {};
+  cats.forEach(cat=>{ pivot[cat]={}; locs.forEach(loc=>{ pivot[cat][loc]=0; }); });
+  data.forEach(e=>{ if(pivot[e.category]) pivot[e.category][e.location]=(pivot[e.category][e.location]||0)+e.revenue; });
+  const header = ['Category', ...locs, 'TOTAL'];
+  const rows = cats.map(cat=>{ const locVals=locs.map(loc=>fmtNum(pivot[cat][loc]||0)); return [cat,...locVals,fmtNum(locVals.reduce((s,v)=>s+v,0))]; });
+  const totRow = ['TOTAL',...locs.map(loc=>fmtNum(data.filter(e=>e.location===loc).reduce((s,e)=>s+e.revenue,0))),fmtNum(data.reduce((s,e)=>s+e.revenue,0))];
+  return [header, ...rows, totRow];
+}
 
 function setExportScope(scope){
   exportScope = scope;
@@ -1318,99 +1513,17 @@ function downloadCSV(filename, rows){
 
 function fmtNum(n){ return Number((n||0).toFixed(2)); }
 
-function exportAllData(){
-  const data = getExportData();
-  if(!data.length){ showError('No data to export'); return; }
-  const header = ['Date','Location','Recorded By','Product Code','Description','Category','Packaging','Weight (KGS)','Unit Price (KES)','Quantity OOS','Revenue Lost (KES)','Reason for Lost Sale'];
-  const rows = data.map(e=>[e.date,e.location,e.recordedBy||'',e.productCode,e.description,e.category,e.packaging,e.weight,fmtNum(e.price),e.qty,fmtNum(e.revenue),e.notes]);
-  downloadCSV(`OOS_Full_Data_${today()}.csv`, [header, ...rows]);
-}
 
-function exportByLocation(){
-  const data = getExportData();
-  if(!data.length){ showError('No data to export'); return; }
-  const map = {};
-  data.forEach(e=>{
-    if(!map[e.location]) map[e.location]={entries:0,qty:0,revenue:0};
-    map[e.location].entries++;
-    map[e.location].qty += e.qty;
-    map[e.location].revenue += e.revenue;
-  });
-  const header = ['Location','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue)
-    .map(([loc,d])=>[loc, d.entries, d.qty, fmtNum(d.revenue)]);
-  const total = rows.reduce((s,r)=>[,'','',s[3]+r[3]],['TOTAL','','',0]);
-  downloadCSV(`OOS_By_Location_${today()}.csv`, [header, ...rows, total]);
-}
 
-function exportByCategory(){
-  const data = getExportData();
-  if(!data.length){ showError('No data to export'); return; }
-  const map = {};
-  data.forEach(e=>{
-    if(!map[e.category]) map[e.category]={entries:0,qty:0,revenue:0};
-    map[e.category].entries++;
-    map[e.category].qty += e.qty;
-    map[e.category].revenue += e.revenue;
-  });
-  const header = ['Category','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue)
-    .map(([cat,d])=>[cat, d.entries, d.qty, fmtNum(d.revenue)]);
-  const total = ['TOTAL','','', fmtNum(rows.reduce((s,r)=>s+r[3],0))];
-  downloadCSV(`OOS_By_Category_${today()}.csv`, [header, ...rows, total]);
-}
 
-function exportByProduct(){
-  const data = getExportData();
-  if(!data.length){ showError('No data to export'); return; }
-  const map = {};
-  data.forEach(e=>{
-    const key = e.productCode+'||'+e.description;
-    if(!map[key]) map[key]={code:e.productCode,desc:e.description,cat:e.category,pkg:e.packaging,price:e.price,entries:0,qty:0,revenue:0};
-    map[key].entries++;
-    map[key].qty += e.qty;
-    map[key].revenue += e.revenue;
-  });
-  const header = ['Product Code','Description','Category','Packaging','Unit Price (KES)','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue)
-    .map(d=>[d.code,d.desc,d.cat,d.pkg,fmtNum(d.price),d.entries,d.qty,fmtNum(d.revenue)]);
-  downloadCSV(`OOS_By_Product_${today()}.csv`, [header, ...rows]);
-}
 
-function exportByDate(){
-  const data = getExportData();
-  if(!data.length){ showError('No data to export'); return; }
-  const map = {};
-  data.forEach(e=>{
-    if(!map[e.date]) map[e.date]={entries:0,qty:0,revenue:0};
-    map[e.date].entries++;
-    map[e.date].qty += e.qty;
-    map[e.date].revenue += e.revenue;
-  });
-  const header = ['Date','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0]))
-    .map(([date,d])=>[date, d.entries, d.qty, fmtNum(d.revenue)]);
-  const total = ['TOTAL','','', fmtNum(rows.reduce((s,r)=>s+r[3],0))];
-  downloadCSV(`OOS_By_Date_${today()}.csv`, [header, ...rows, total]);
-}
 
-function exportPivot(){
-  const data = getExportData();
-  if(!data.length){ showError('No data to export'); return; }
-  const locs = [...new Set(data.map(e=>e.location))].sort();
-  const cats = [...new Set(data.map(e=>e.category))].sort();
-  const pivot = {};
-  cats.forEach(cat=>{ pivot[cat]={}; locs.forEach(loc=>{ pivot[cat][loc]=0; }); });
-  data.forEach(e=>{ if(pivot[e.category]) pivot[e.category][e.location]=(pivot[e.category][e.location]||0)+e.revenue; });
-  const header = ['Category', ...locs, 'TOTAL'];
-  const rows = cats.map(cat=>{
-    const locVals = locs.map(loc=>fmtNum(pivot[cat][loc]||0));
-    const total = fmtNum(locVals.reduce((s,v)=>s+v,0));
-    return [cat, ...locVals, total];
-  });
-  const totRow = ['TOTAL', ...locs.map(loc=>fmtNum(data.filter(e=>e.location===loc).reduce((s,e)=>s+e.revenue,0))), fmtNum(data.reduce((s,e)=>s+e.revenue,0))];
-  downloadCSV(`OOS_Pivot_${today()}.csv`, [header, ...rows, totRow]);
-}
+
+
+
+
+
+
 
 // ═══════════════════════════════════════════════════
 //  SIDE STATS (entry view)
@@ -1441,6 +1554,32 @@ function updateSideStats(){
     </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
 }
 </script>
+
+<!-- ═══ PREVIEW MODAL ═══ -->
+<div id="preview-overlay">
+  <div id="preview-modal">
+    <div id="preview-header">
+      <div>
+        <div id="preview-title">📄 Preview</div>
+        <div id="preview-subtitle"></div>
+      </div>
+      <button id="preview-close" onclick="closePreview()">✕</button>
+    </div>
+    <div id="preview-table-wrap">
+      <table id="preview-table">
+        <thead id="preview-thead"></thead>
+        <tbody id="preview-tbody"></tbody>
+      </table>
+    </div>
+    <div id="preview-footer">
+      <div id="preview-info"></div>
+      <div style="display:flex;gap:10px">
+        <button id="preview-cancel-btn" onclick="closePreview()">Cancel</button>
+        <button id="preview-download-btn" onclick="confirmDownload()">⬇ Download Excel (CSV)</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ PASSWORD MODAL ═══ -->
 <div id="pwd-overlay">
