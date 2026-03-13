@@ -275,6 +275,36 @@
   .gt-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
   .gt-val { font-family: var(--mono); font-weight: 700; font-size: 30px; color: var(--red); }
 
+  /* ── EXPORT ── */
+  .export-section {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 20px;
+  }
+  .export-title { font-weight: 700; font-size: 15px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .export-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .export-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 13px 16px; cursor: pointer;
+    transition: all .15s; text-align: left; width: 100%;
+  }
+  .export-btn:hover { border-color: #16a34a; background: rgba(34,197,94,0.07); }
+  .export-btn-icon { font-size: 22px; flex-shrink: 0; }
+  .export-btn-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .export-btn-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .export-options {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    padding: 12px 0 4px 0; border-top: 1px solid var(--border); margin-top: 14px;
+  }
+  .export-opt-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing:.06em; }
+  .export-scope-btn {
+    padding: 5px 12px; border-radius: 5px; border: 1px solid var(--border2);
+    background: var(--bg); color: var(--text2); font-size: 11px; cursor: pointer;
+    font-family: var(--sans); transition: all .15s;
+  }
+  .export-scope-btn.active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); font-weight: 600; }
+  @media (max-width: 700px) { .export-grid { grid-template-columns: 1fr; } }
+
   /* ── ALERTS ── */
   #error-bar {
     display: none; background: #1a0a0a; border: 1px solid var(--red-dim);
@@ -565,6 +595,63 @@
     </div>
 
     <div id="cat-tables"></div>
+
+    <!-- ═══ EXPORT SECTION ═══ -->
+    <div class="export-section">
+      <div class="export-title">📥 Export Data</div>
+
+      <div class="export-options">
+        <span class="export-opt-label">Export scope:</span>
+        <button class="export-scope-btn active" id="scope-filtered" onclick="setExportScope('filtered')">Current View (filtered)</button>
+        <button class="export-scope-btn" id="scope-all" onclick="setExportScope('all')">All Records</button>
+        <span id="export-scope-note" style="font-size:11px;color:var(--text3);margin-left:4px"></span>
+      </div>
+
+      <div class="export-grid" style="margin-top:14px">
+        <button class="export-btn" onclick="exportAllData()">
+          <span class="export-btn-icon">📊</span>
+          <div>
+            <div class="export-btn-label">Full OOS Data</div>
+            <div class="export-btn-sub">All columns — one row per entry</div>
+          </div>
+        </button>
+        <button class="export-btn" onclick="exportByLocation()">
+          <span class="export-btn-icon">📍</span>
+          <div>
+            <div class="export-btn-label">Summary by Location</div>
+            <div class="export-btn-sub">Revenue lost per branch</div>
+          </div>
+        </button>
+        <button class="export-btn" onclick="exportByCategory()">
+          <span class="export-btn-icon">🗂️</span>
+          <div>
+            <div class="export-btn-label">Summary by Category</div>
+            <div class="export-btn-sub">Revenue lost per product category</div>
+          </div>
+        </button>
+        <button class="export-btn" onclick="exportByProduct()">
+          <span class="export-btn-icon">📦</span>
+          <div>
+            <div class="export-btn-label">Summary by Product</div>
+            <div class="export-btn-sub">Top OOS products ranked by revenue</div>
+          </div>
+        </button>
+        <button class="export-btn" onclick="exportByDate()">
+          <span class="export-btn-icon">📅</span>
+          <div>
+            <div class="export-btn-label">Summary by Date</div>
+            <div class="export-btn-sub">Daily revenue lost breakdown</div>
+          </div>
+        </button>
+        <button class="export-btn" onclick="exportPivot()">
+          <span class="export-btn-icon">🔁</span>
+          <div>
+            <div class="export-btn-label">Location × Category Pivot</div>
+            <div class="export-btn-sub">Cross-tabulation of all branches</div>
+          </div>
+        </button>
+      </div>
+    </div>
 
     <div class="grand-total" id="grand-total" style="display:none">
       <div>
@@ -946,6 +1033,9 @@ function applyFilters(){
     `<span style="color:var(--text)">${filteredEntries.length}</span> records · Revenue Lost: <span>${fmt(total)}</span>`;
   renderTable();
   renderConsolidated();
+  // Update export scope note
+  const noteEl = document.getElementById('export-scope-note');
+  if(noteEl){ const d = exportScope==='all'?allEntries:filteredEntries; noteEl.textContent='('+d.length+' records)'; }
 }
 function clearFilters(){
   document.getElementById('filter-cat').value='';
@@ -1193,6 +1283,135 @@ function renderConsolidated(){
   gt.style.display=filteredEntries.length?'flex':'none';
   document.getElementById('gt-val').textContent=fmt(total);
   document.getElementById('gt-sub').textContent=`${filteredEntries.length} entries · ${locs.length} location(s) · ${cats.length} category(ies)`;
+}
+
+// ═══════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════
+let exportScope = 'filtered';
+
+function setExportScope(scope){
+  exportScope = scope;
+  document.getElementById('scope-filtered').classList.toggle('active', scope==='filtered');
+  document.getElementById('scope-all').classList.toggle('active', scope==='all');
+  const data = scope==='all' ? allEntries : filteredEntries;
+  document.getElementById('export-scope-note').textContent = `(${data.length} records)`;
+}
+
+function getExportData(){
+  return exportScope === 'all' ? allEntries : filteredEntries;
+}
+
+function downloadCSV(filename, rows){
+  const csv = rows.map(r => r.map(cell => {
+    const s = String(cell==null?'':cell);
+    return s.includes(',') || s.includes('"') || s.includes('
+') ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }).join(',')).join('
+');
+  const blob = new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function fmtNum(n){ return Number((n||0).toFixed(2)); }
+
+function exportAllData(){
+  const data = getExportData();
+  if(!data.length){ showError('No data to export'); return; }
+  const header = ['Date','Location','Recorded By','Product Code','Description','Category','Packaging','Weight (KGS)','Unit Price (KES)','Quantity OOS','Revenue Lost (KES)','Reason for Lost Sale'];
+  const rows = data.map(e=>[e.date,e.location,e.recordedBy||'',e.productCode,e.description,e.category,e.packaging,e.weight,fmtNum(e.price),e.qty,fmtNum(e.revenue),e.notes]);
+  downloadCSV(`OOS_Full_Data_${today()}.csv`, [header, ...rows]);
+}
+
+function exportByLocation(){
+  const data = getExportData();
+  if(!data.length){ showError('No data to export'); return; }
+  const map = {};
+  data.forEach(e=>{
+    if(!map[e.location]) map[e.location]={entries:0,qty:0,revenue:0};
+    map[e.location].entries++;
+    map[e.location].qty += e.qty;
+    map[e.location].revenue += e.revenue;
+  });
+  const header = ['Location','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
+  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue)
+    .map(([loc,d])=>[loc, d.entries, d.qty, fmtNum(d.revenue)]);
+  const total = rows.reduce((s,r)=>[,'','',s[3]+r[3]],['TOTAL','','',0]);
+  downloadCSV(`OOS_By_Location_${today()}.csv`, [header, ...rows, total]);
+}
+
+function exportByCategory(){
+  const data = getExportData();
+  if(!data.length){ showError('No data to export'); return; }
+  const map = {};
+  data.forEach(e=>{
+    if(!map[e.category]) map[e.category]={entries:0,qty:0,revenue:0};
+    map[e.category].entries++;
+    map[e.category].qty += e.qty;
+    map[e.category].revenue += e.revenue;
+  });
+  const header = ['Category','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
+  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue)
+    .map(([cat,d])=>[cat, d.entries, d.qty, fmtNum(d.revenue)]);
+  const total = ['TOTAL','','', fmtNum(rows.reduce((s,r)=>s+r[3],0))];
+  downloadCSV(`OOS_By_Category_${today()}.csv`, [header, ...rows, total]);
+}
+
+function exportByProduct(){
+  const data = getExportData();
+  if(!data.length){ showError('No data to export'); return; }
+  const map = {};
+  data.forEach(e=>{
+    const key = e.productCode+'||'+e.description;
+    if(!map[key]) map[key]={code:e.productCode,desc:e.description,cat:e.category,pkg:e.packaging,price:e.price,entries:0,qty:0,revenue:0};
+    map[key].entries++;
+    map[key].qty += e.qty;
+    map[key].revenue += e.revenue;
+  });
+  const header = ['Product Code','Description','Category','Packaging','Unit Price (KES)','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
+  const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue)
+    .map(d=>[d.code,d.desc,d.cat,d.pkg,fmtNum(d.price),d.entries,d.qty,fmtNum(d.revenue)]);
+  downloadCSV(`OOS_By_Product_${today()}.csv`, [header, ...rows]);
+}
+
+function exportByDate(){
+  const data = getExportData();
+  if(!data.length){ showError('No data to export'); return; }
+  const map = {};
+  data.forEach(e=>{
+    if(!map[e.date]) map[e.date]={entries:0,qty:0,revenue:0};
+    map[e.date].entries++;
+    map[e.date].qty += e.qty;
+    map[e.date].revenue += e.revenue;
+  });
+  const header = ['Date','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
+  const rows = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0]))
+    .map(([date,d])=>[date, d.entries, d.qty, fmtNum(d.revenue)]);
+  const total = ['TOTAL','','', fmtNum(rows.reduce((s,r)=>s+r[3],0))];
+  downloadCSV(`OOS_By_Date_${today()}.csv`, [header, ...rows, total]);
+}
+
+function exportPivot(){
+  const data = getExportData();
+  if(!data.length){ showError('No data to export'); return; }
+  const locs = [...new Set(data.map(e=>e.location))].sort();
+  const cats = [...new Set(data.map(e=>e.category))].sort();
+  const pivot = {};
+  cats.forEach(cat=>{ pivot[cat]={}; locs.forEach(loc=>{ pivot[cat][loc]=0; }); });
+  data.forEach(e=>{ if(pivot[e.category]) pivot[e.category][e.location]=(pivot[e.category][e.location]||0)+e.revenue; });
+  const header = ['Category', ...locs, 'TOTAL'];
+  const rows = cats.map(cat=>{
+    const locVals = locs.map(loc=>fmtNum(pivot[cat][loc]||0));
+    const total = fmtNum(locVals.reduce((s,v)=>s+v,0));
+    return [cat, ...locVals, total];
+  });
+  const totRow = ['TOTAL', ...locs.map(loc=>fmtNum(data.filter(e=>e.location===loc).reduce((s,e)=>s+e.revenue,0))), fmtNum(data.reduce((s,e)=>s+e.revenue,0))];
+  downloadCSV(`OOS_Pivot_${today()}.csv`, [header, ...rows, totRow]);
 }
 
 // ═══════════════════════════════════════════════════
