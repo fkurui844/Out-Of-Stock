@@ -520,6 +520,63 @@
     <div class="filter-summary" id="filter-summary">Loading...</div>
   </div>
 
+  <!-- ═══ EXPORT SECTION ═══ -->
+  <div class="export-section">
+    <div class="export-title">📥 Export Data</div>
+
+    <div class="export-options">
+      <span class="export-opt-label">Export scope:</span>
+      <button class="export-scope-btn active" id="scope-filtered" onclick="setExportScope('filtered')">Current View (filtered)</button>
+      <button class="export-scope-btn" id="scope-all" onclick="setExportScope('all')">All Records</button>
+      <span id="export-scope-note" style="font-size:11px;color:var(--text3);margin-left:4px"></span>
+    </div>
+
+    <div class="export-grid" style="margin-top:14px">
+      <button class="export-btn" onclick="previewData('all')">
+        <span class="export-btn-icon">📊</span>
+        <div>
+          <div class="export-btn-label">Full OOS Data</div>
+          <div class="export-btn-sub">All columns — one row per entry</div>
+        </div>
+      </button>
+      <button class="export-btn" onclick="previewData('location')">
+        <span class="export-btn-icon">📍</span>
+        <div>
+          <div class="export-btn-label">Summary by Location</div>
+          <div class="export-btn-sub">Revenue lost per branch</div>
+        </div>
+      </button>
+      <button class="export-btn" onclick="previewData('category')">
+        <span class="export-btn-icon">🗂️</span>
+        <div>
+          <div class="export-btn-label">Summary by Category</div>
+          <div class="export-btn-sub">Revenue lost per product category</div>
+        </div>
+      </button>
+      <button class="export-btn" onclick="previewData('product')">
+        <span class="export-btn-icon">📦</span>
+        <div>
+          <div class="export-btn-label">Summary by Product</div>
+          <div class="export-btn-sub">Top OOS products ranked by revenue</div>
+        </div>
+      </button>
+      <button class="export-btn" onclick="previewData('date')">
+        <span class="export-btn-icon">📅</span>
+        <div>
+          <div class="export-btn-label">Summary by Date</div>
+          <div class="export-btn-sub">Daily revenue lost breakdown</div>
+        </div>
+      </button>
+      <button class="export-btn" onclick="previewData('pivot')">
+        <span class="export-btn-icon">🔁</span>
+        <div>
+          <div class="export-btn-label">Location × Category Pivot</div>
+          <div class="export-btn-sub">Cross-tabulation of all branches</div>
+        </div>
+      </button>
+    </div>
+  </div>
+
   <!-- ═══ ENTRY VIEW ═══ -->
   <div id="entry-view">
     <div class="card">
@@ -664,63 +721,6 @@
     </div>
 
     <div id="cat-tables"></div>
-
-    <!-- ═══ EXPORT SECTION ═══ -->
-    <div class="export-section">
-      <div class="export-title">📥 Export Data</div>
-
-      <div class="export-options">
-        <span class="export-opt-label">Export scope:</span>
-        <button class="export-scope-btn active" id="scope-filtered" onclick="setExportScope('filtered')">Current View (filtered)</button>
-        <button class="export-scope-btn" id="scope-all" onclick="setExportScope('all')">All Records</button>
-        <span id="export-scope-note" style="font-size:11px;color:var(--text3);margin-left:4px"></span>
-      </div>
-
-      <div class="export-grid" style="margin-top:14px">
-        <button class="export-btn" onclick="previewData('all')">
-          <span class="export-btn-icon">📊</span>
-          <div>
-            <div class="export-btn-label">Full OOS Data</div>
-            <div class="export-btn-sub">All columns — one row per entry</div>
-          </div>
-        </button>
-        <button class="export-btn" onclick="previewData('location')">
-          <span class="export-btn-icon">📍</span>
-          <div>
-            <div class="export-btn-label">Summary by Location</div>
-            <div class="export-btn-sub">Revenue lost per branch</div>
-          </div>
-        </button>
-        <button class="export-btn" onclick="previewData('category')">
-          <span class="export-btn-icon">🗂️</span>
-          <div>
-            <div class="export-btn-label">Summary by Category</div>
-            <div class="export-btn-sub">Revenue lost per product category</div>
-          </div>
-        </button>
-        <button class="export-btn" onclick="previewData('product')">
-          <span class="export-btn-icon">📦</span>
-          <div>
-            <div class="export-btn-label">Summary by Product</div>
-            <div class="export-btn-sub">Top OOS products ranked by revenue</div>
-          </div>
-        </button>
-        <button class="export-btn" onclick="previewData('date')">
-          <span class="export-btn-icon">📅</span>
-          <div>
-            <div class="export-btn-label">Summary by Date</div>
-            <div class="export-btn-sub">Daily revenue lost breakdown</div>
-          </div>
-        </button>
-        <button class="export-btn" onclick="previewData('pivot')">
-          <span class="export-btn-icon">🔁</span>
-          <div>
-            <div class="export-btn-label">Location × Category Pivot</div>
-            <div class="export-btn-sub">Cross-tabulation of all branches</div>
-          </div>
-        </button>
-      </div>
-    </div>
 
     <div class="grand-total" id="grand-total" style="display:none">
       <div>
@@ -968,13 +968,13 @@ let syncCountdown = 30;
 
 function startAutoSync(){
   if(syncInterval) clearInterval(syncInterval);
-  syncCountdown = 30;
+  syncCountdown = 10;
   updateCountdownDisplay();
   syncInterval = setInterval(()=>{
     syncCountdown--;
     updateCountdownDisplay();
     if(syncCountdown <= 0){
-      syncCountdown = 30;
+      syncCountdown = 10;
       loadEntries();
     }
   }, 1000);
