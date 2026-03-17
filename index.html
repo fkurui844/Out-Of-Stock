@@ -530,7 +530,7 @@
   <div class="nav-tabs">
     <button class="nav-btn active" onclick="switchView('entry')">📝 Record OOS</button>
     <button class="nav-btn" onclick="switchView('records')" id="tab-records">📋 Records (<span id="rec-count">0</span>)</button>
-    <button class="nav-btn" onclick="switchView('consolidated')">📊 Consolidated</button>
+    <button class="nav-btn" onclick="switchView('consolidated')">📊 Dashboard</button>
   </div>
   <div class="header-actions">
     <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"><span id="theme-icon">🌙</span> Night</button>
@@ -556,7 +556,9 @@
     <select class="fsel" id="filter-loc" onchange="applyFilters()">
       <option value="">All Locations</option>
     </select>
-    <input type="date" class="fsel" id="filter-date" onchange="applyFilters()" style="color-scheme:dark">
+    <span class="filter-label" style="margin-left:10px">Period:</span>
+    <input type="date" class="fsel" id="filter-date-from" onchange="applyFilters()" style="color-scheme:dark" placeholder="From">
+    <input type="date" class="fsel" id="filter-date-to" onchange="applyFilters()" style="color-scheme:dark" placeholder="To">
     <button class="clear-btn" onclick="clearFilters()" id="clear-btn" style="display:none">✕ Clear</button>
     <div class="filter-summary" id="filter-summary">Loading...</div>
   </div>
@@ -1160,13 +1162,15 @@ function populateLocFilter(){
 function applyFilters(){
   const cat = document.getElementById('filter-cat').value;
   const loc = document.getElementById('filter-loc').value;
-  const date = document.getElementById('filter-date').value;
-  const hasFilter = cat||loc||date;
+  const dateFrom = document.getElementById('filter-date-from').value;
+  const dateTo = document.getElementById('filter-date-to').value;
+  const hasFilter = cat||loc||dateFrom||dateTo;
   document.getElementById('clear-btn').style.display = hasFilter?'inline-block':'none';
   filteredEntries = allEntries.filter(e=>{
     if(cat && e.category!==cat) return false;
     if(loc && e.location!==loc) return false;
-    if(date && e.date!==date) return false;
+    if(dateFrom && e.date < dateFrom) return false;
+    if(dateTo && e.date > dateTo) return false;
     return true;
   });
   const total = filteredEntries.reduce((s,e)=>s+e.revenue,0);
@@ -1181,7 +1185,8 @@ function applyFilters(){
 function clearFilters(){
   document.getElementById('filter-cat').value='';
   document.getElementById('filter-loc').value='';
-  document.getElementById('filter-date').value='';
+  document.getElementById('filter-date-from').value='';
+  document.getElementById('filter-date-to').value='';
   applyFilters();
 }
 
