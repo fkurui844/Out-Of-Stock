@@ -1357,7 +1357,7 @@ function renderTable(){
       </div>
       <div class="td">${catBadge(e.category)}</div>
       <div class="td td-muted" style="font-size:11px">${esc(e.location)}</div>
-      <div class="td td-mono" style="font-weight:600">${e.qty}</div>
+      <div class="td td-mono" style="font-weight:600">${fmtInt(e.qty)}</div>
       <div class="td td-green">${fmt(e.price)}</div>
       <div class="td td-red">${fmt(e.revenue)}</div>
       <div class="td"><button class="del-btn" onclick="deleteEntry(${e.rowIndex})">✕</button></div>
@@ -1377,10 +1377,10 @@ function renderConsolidated(){
     byCat[e.category].total+=e.revenue;
   });
   const locs=Object.keys(byLoc), cats=Object.keys(byCat);
-  document.getElementById('sc-entries').textContent=filteredEntries.length;
+  document.getElementById('sc-entries').textContent=fmtInt(filteredEntries.length);
   document.getElementById('sc-rev').textContent=fmt(total);
-  document.getElementById('sc-locs').textContent=locs.length;
-  document.getElementById('sc-cats').textContent=cats.length;
+  document.getElementById('sc-locs').textContent=fmtInt(locs.length);
+  document.getElementById('sc-cats').textContent=fmtInt(cats.length);
 
   const locEl=document.getElementById('loc-breakdown');
   if(!locs.length){ locEl.innerHTML='<div style="color:var(--text3);font-size:12px">No data</div>'; }
@@ -1396,7 +1396,7 @@ function renderConsolidated(){
   else catEl.innerHTML=Object.entries(byCat).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>{
     const c=CAT_COLORS[cat]||'#6b7280';
     return `<div class="bar-item">
-      <div class="bar-head">${catBadge(cat)}<span style="font-family:var(--mono);color:${c}">${fmt(d.total)}<span style="color:var(--text3);font-size:10px;margin-left:6px">(${d.entries.length})</span></span></div>
+      <div class="bar-head">${catBadge(cat)}<span style="font-family:var(--mono);color:${c}">${fmt(d.total)}<span style="color:var(--text3);font-size:10px;margin-left:6px">(${fmtInt(d.entries.length)})</span></span></div>
       <div class="bar-track"><div class="bar-fill" style="width:${total?((d.total/total)*100).toFixed(1):0}%;background:${c}"></div></div>
     </div>`;}).join('');
 
@@ -1410,13 +1410,13 @@ function renderConsolidated(){
         <td>${esc(e.description)}</td>
         <td style="color:var(--text2)">${esc(e.location)}</td>
         <td style="font-family:var(--mono);font-size:11px;color:var(--text2)">${esc(e.date)}</td>
-        <td style="font-family:var(--mono);font-weight:600;text-align:right">${e.qty}</td>
+        <td style="font-family:var(--mono);font-weight:600;text-align:right">${fmtInt(e.qty)}</td>
         <td style="font-family:var(--mono);color:var(--text2);text-align:right">${fmt(e.price)}</td>
         <td style="font-family:var(--mono);font-weight:700;color:var(--red);text-align:right">${fmt(e.revenue)}</td>
       </tr>`).join('');
     return `<div class="card con-cat-table">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:10px">${catBadge(cat)}<span style="color:var(--text2);font-size:12px">${d.entries.length} OOS entries</span></div>
+        <div style="display:flex;align-items:center;gap:10px">${catBadge(cat)}<span style="color:var(--text2);font-size:12px">${fmtInt(d.entries.length)} OOS entries</span></div>
         <span style="font-family:var(--mono);font-weight:700;font-size:16px;color:${c}">${fmt(d.total)}</span>
       </div>
       <div style="overflow-x:auto"><table class="con-tbl">
@@ -1428,7 +1428,7 @@ function renderConsolidated(){
   const gt=document.getElementById('grand-total');
   gt.style.display=filteredEntries.length?'flex':'none';
   document.getElementById('gt-val').textContent=fmt(total);
-  document.getElementById('gt-sub').textContent=`${filteredEntries.length} entries · ${locs.length} location(s) · ${cats.length} category(ies)`;
+  document.getElementById('gt-sub').textContent=`${fmtInt(filteredEntries.length)} entries · ${fmtInt(locs.length)} location(s) · ${fmtInt(cats.length)} category(ies)`;
 }
 
 // ═══════════════════════════════════════════════════
@@ -1588,7 +1588,14 @@ function downloadCSV(filename, rows){
   URL.revokeObjectURL(url);
 }
 
-function fmtNum(n){ return Number((n||0).toFixed(2)); }
+function fmtNum(n){ 
+  const num = parseFloat(n||0).toFixed(2);
+  return new Intl.NumberFormat('en-KE', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(num);
+}
+
+function fmtInt(n) {
+  return new Intl.NumberFormat('en-KE').format(Math.round(n||0));
+}
 
 
 
@@ -1608,7 +1615,7 @@ function fmtNum(n){ return Number((n||0).toFixed(2)); }
 function updateSideStats(){
   const td = today();
   const todayE = allEntries.filter(e=>e.date===td);
-  document.getElementById('today-count').textContent=todayE.length;
+  document.getElementById('today-count').textContent=fmtInt(todayE.length);
   document.getElementById('today-rev').textContent=fmt(todayE.reduce((s,e)=>s+e.revenue,0));
   const byLoc={}, byCat={};
   allEntries.forEach(e=>{
