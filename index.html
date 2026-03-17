@@ -1119,7 +1119,6 @@ function loadEntries(){
         populateLocFilter();
         applyFilters();
         updateSideStats();
-        document.getElementById('rec-count').textContent = allEntries.length;
       } else {
         showError(data.error||'Failed to load data');
       }
