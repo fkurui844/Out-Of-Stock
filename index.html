@@ -528,8 +528,7 @@
     </div>
   </div>
   <div class="nav-tabs">
-    <button class="nav-btn active" onclick="switchView('entry')">📝 Record OOS</button>
-    <button class="nav-btn" onclick="switchView('records')" id="tab-records">📋 Records (<span id="rec-count">0</span>)</button>
+    <button class="nav-btn" onclick="switchView('entry')">📝 Record OOS</button>
     <button class="nav-btn" onclick="switchView('consolidated')">📊 Dashboard</button>
   </div>
   <div class="header-actions">
@@ -1195,12 +1194,13 @@ function clearFilters(){
 // ═══════════════════════════════════════════════════
 function switchView(v){
   currentView = v;
-  ['entry','records','consolidated'].forEach(id=>{
+  ['entry','consolidated'].forEach(id=>{
     document.getElementById(id+'-view').style.display = id===v ? (id==='entry'?'grid':'block') : 'none';
   });
+  document.getElementById('records-view').style.display = 'none';
   document.getElementById('export-section').style.display = v === 'consolidated' ? 'block' : 'none';
   document.querySelectorAll('.nav-btn').forEach((b,i)=>{
-    b.classList.toggle('active',['entry','records','consolidated'][i]===v);
+    b.classList.toggle('active',['entry','consolidated'][i]===v);
   });
 }
 
