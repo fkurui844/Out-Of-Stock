@@ -1,1720 +1,192 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>OOS Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-<style>
-  :root {
-    --bg: #0a0f0d;
-    --bg2: #111814;
-    --bg3: #182019;
-    --border: #1f2e22;
-    --border2: #2a3d2d;
-    --green: #22c55e;
-    --green-dim: #16a34a;
-    --green-glow: rgba(34,197,94,0.12);
-    --red: #f87171;
-    --red-dim: #dc2626;
-    --amber: #fbbf24;
-    --text: #e2ede5;
-    --text2: #8fa896;
-    --text3: #4a6250;
-    --mono: 'IBM Plex Mono', monospace;
-    --sans: 'IBM Plex Sans', sans-serif;
-  }
+// ============================================================
+//  OOS TRACKER — Google Apps Script Backend
+//  Handles GET requests (fetch data) and POST requests (append/delete)
+// ============================================================
 
-  /* Light theme */
-  body.light-theme {
-    --bg: #f8faf7;
-    --bg2: #f0f3ed;
-    --bg3: #e8ebe5;
-    --border: #d1d9cc;
-    --border2: #c4ccbd;
-    --green: #16a34a;
-    --green-dim: #15803d;
-    --green-glow: rgba(22,163,74,0.12);
-    --red: #dc2626;
-    --red-dim: #b91c1c;
-    --amber: #d97706;
-    --text: #1f2937;
-    --text2: #6b7280;
-    --text3: #9ca3af;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { font-size: 14px; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100vh;
-    background-image: radial-gradient(ellipse at 20% 0%, rgba(34,197,94,0.06) 0%, transparent 50%),
-                      radial-gradient(ellipse at 80% 100%, rgba(34,197,94,0.04) 0%, transparent 50%);
-  }
+const SHEET_ID   = "1YIxg8S4L5D1veBZ_CTWBo_AnMODcWGZcMpz8McPwzhw";
+const SHEET_NAME = "OOS_Data";
 
-  /* Light theme background */
-  body.light-theme {
-    background-image: radial-gradient(ellipse at 20% 0%, rgba(22,163,74,0.03) 0%, transparent 50%),
-                      radial-gradient(ellipse at 80% 100%, rgba(22,163,74,0.02) 0%, transparent 50%);
-  }
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: var(--bg2); }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-  /* ── HEADER ── */
-  #header {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 58px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(12px);
-  }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo-icon {
-    width: 34px; height: 34px;
-    background: var(--green-glow);
-    border: 1px solid var(--green-dim);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 17px;
-  }
-  .logo-text { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
-  .logo-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); }
-  .conn-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 5px; box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-  .nav-tabs { display: flex; gap: 4px; }
-  .nav-btn {
-    padding: 7px 18px; border-radius: 6px; border: 1px solid transparent;
-    cursor: pointer; font-family: var(--sans); font-size: 13px; font-weight: 500;
-    transition: all .15s; color: var(--text2); background: transparent;
-  }
-  .nav-btn:hover { background: var(--bg3); color: var(--text); }
-  .nav-btn.active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); }
-  .header-actions { display: flex; align-items: center; gap: 10px; }
-  .refresh-btn {
-    background: var(--bg3); border: 1px solid var(--border2); color: var(--text2);
-    border-radius: 6px; padding: 6px 14px; cursor: pointer; font-family: var(--mono);
-    font-size: 12px; transition: all .15s;
-  }
-  .refresh-btn:hover { color: var(--green); border-color: var(--green-dim); }
-  .theme-toggle {
-    background: var(--bg3); border: 1px solid var(--border2); color: var(--text2);
-    border-radius: 6px; padding: 6px 12px; cursor: pointer; font-family: var(--mono);
-    font-size: 13px; transition: all .15s; display: flex; align-items: center; gap: 6px;
-  }
-  .theme-toggle:hover { color: var(--amber); border-color: var(--amber); }
-
-  /* ── LAYOUT ── */
-  #app { max-width: 1280px; margin: 0 auto; padding: 24px; }
-
-  /* ── FILTER BAR ── */
-  #filter-bar {
-    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
-  }
-  .filter-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
-  select.fsel, input.fsel {
-    background: var(--bg); border: 1px solid var(--border2); color: var(--text);
-    border-radius: 6px; padding: 6px 10px; font-family: var(--sans); font-size: 12px;
-    cursor: pointer; outline: none; transition: border .15s;
-    color-scheme: dark;
-  }
-  body.light-theme select.fsel,
-  body.light-theme input.fsel {
-    color-scheme: light;
-  }
-  select.fsel:focus, input.fsel:focus { border-color: var(--green-dim); }
-  .clear-btn {
-    background: none; border: 1px solid var(--red-dim); color: var(--red);
-    border-radius: 6px; padding: 5px 12px; font-size: 11px; cursor: pointer;
-    font-family: var(--sans); transition: all .15s;
-  }
-  .clear-btn:hover { background: rgba(248,113,113,0.1); }
-  .filter-summary { margin-left: auto; font-size: 12px; color: var(--text2); }
-  .filter-summary span { color: var(--red); font-family: var(--mono); font-weight: 600; }
-
-  /* ── CARDS ── */
-  .card {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px;
-  }
-  .card-title { font-weight: 700; font-size: 15px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
-
-  /* ── ENTRY FORM ── */
-  #entry-view { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
-  .field-group { margin-bottom: 16px; }
-  .field-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; display: block; margin-bottom: 6px; }
-  .field-input {
-    width: 100%; background: var(--bg); border: 1px solid var(--border2);
-    border-radius: 8px; padding: 10px 13px; color: var(--text);
-    font-family: var(--sans); font-size: 13px; outline: none; transition: border .15s;
-    color-scheme: dark;
-  }
-  body.light-theme .field-input,
-  body.light-theme select.field-input {
-    color-scheme: light;
-  }
-  .field-input, select.field-input { color-scheme: dark; }
-  .field-input:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px var(--green-glow); }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .three-col { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; }
-
-  /* product dropdown */
-  .dd-wrap { position: relative; }
-  #product-dropdown {
-    display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-    z-index: 200; background: var(--bg2); border: 1px solid var(--border2);
-    border-radius: 8px; max-height: 260px; overflow-y: auto;
-    box-shadow: 0 12px 40px rgba(0,0,0,.5);
-  }
-  #product-dropdown.open { display: block; }
-  .dd-item {
-    padding: 10px 14px; cursor: pointer; display: flex;
-    justify-content: space-between; align-items: center;
-    border-bottom: 1px solid var(--border); transition: background .1s; gap: 10px;
-  }
-  .dd-item:last-child { border-bottom: none; }
-  .dd-item:hover { background: var(--bg3); }
-  .dd-code { font-family: var(--mono); font-size: 11px; color: var(--text3); flex-shrink: 0; }
-  .dd-desc { font-size: 12px; color: var(--text); flex: 1; }
-  .dd-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  .dd-price { font-family: var(--mono); font-size: 11px; color: var(--green); }
-
-  /* product info strip */
-  #product-strip {
-    display: none; background: var(--bg3); border: 1px solid var(--green-dim);
-    border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;
-    grid-template-columns: repeat(4,1fr); gap: 10px;
-    animation: fadein .2s ease;
-  }
-  #product-strip.show { display: grid; }
-  @keyframes fadein { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
-  .strip-item .si-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing:.07em; }
-  .strip-item .si-value { font-size: 13px; font-weight: 600; color: var(--green); margin-top: 3px; font-family: var(--mono); }
-
-  /* revenue preview */
-  #rev-preview {
-    display: none; background: #1a1200; border: 1px solid #92400e;
-    border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
-    justify-content: space-between; align-items: center;
-  }
-  #rev-preview.show { display: flex; }
-  .rev-label { color: var(--amber); font-size: 12px; }
-  .rev-value { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--amber); }
-
-  /* submit btn */
-  #submit-btn {
-    background: var(--green-dim); color: #fff; border: none; border-radius: 8px;
-    padding: 11px 26px; font-family: var(--sans); font-weight: 600; font-size: 14px;
-    cursor: pointer; transition: background .15s;
-  }
-  #submit-btn:hover:not(:disabled) { background: var(--green); }
-  #submit-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
-  #save-feedback { font-size: 13px; font-weight: 600; color: var(--green); margin-left: 14px; opacity: 0; transition: opacity .4s; }
-  #save-feedback.show { opacity: 1; }
-
-  /* ── SIDE STATS ── */
-  .side-stats { display: flex; flex-direction: column; gap: 14px; }
-  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
-  .stat-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
-  .stat-big { font-family: var(--mono); font-size: 26px; font-weight: 600; color: var(--text); }
-  .stat-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
-  .stat-sub em { color: var(--red); font-style: normal; font-family: var(--mono); }
-  .bar-item { margin-bottom: 10px; }
-  .bar-head { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
-  .bar-track { height: 5px; background: var(--border2); border-radius: 3px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 3px; background: var(--red); transition: width .4s; }
-
-  /* ── CAT BADGE ── */
-  .cat-badge {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 10px; font-weight: 600; letter-spacing: .04em;
-  }
-
-  /* ── RECORDS TABLE ── */
-  #records-view { display: none; }
-  .tbl-wrap { overflow-x: auto; }
-  .tbl-head {
-    display: grid; grid-template-columns: 90px 1fr 100px 120px 55px 100px 115px 36px;
-    gap: 8px; padding: 9px 12px; background: var(--bg);
-    border-radius: 6px 6px 0 0; border-bottom: 1px solid var(--border2);
-  }
-  .tbl-body { max-height: 520px; overflow-y: auto; }
-  .tbl-row {
-    display: grid; grid-template-columns: 90px 1fr 100px 120px 55px 100px 115px 36px;
-    gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border);
-    align-items: center; transition: background .1s;
-  }
-  .tbl-row:hover { background: var(--bg3); }
-  .th { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; }
-  .td { font-size: 12px; color: var(--text); }
-  .td-mono { font-family: var(--mono); font-size: 11px; }
-  .td-muted { color: var(--text2); }
-  .td-red { font-family: var(--mono); font-weight: 700; color: var(--red); }
-  .td-green { font-family: var(--mono); font-size: 11px; color: var(--text2); }
-  .td-desc { font-size: 12px; }
-  .td-sub { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
-  .td-note { font-size: 10px; color: var(--text3); margin-top: 2px; }
-  .del-btn {
-    background: none; border: none; color: var(--text3); cursor: pointer;
-    font-size: 15px; padding: 2px 5px; border-radius: 4px; transition: color .15s;
-  }
-  .del-btn:hover { color: var(--red); }
-  .tbl-total {
-    padding: 11px 12px; background: #0d1f10; border: 1px solid var(--green-dim);
-    border-radius: 0 0 8px 8px; display: flex; justify-content: flex-end; gap: 20px; align-items: center;
-  }
-  .tbl-total-label { font-size: 12px; color: var(--text2); }
-  .tbl-total-val { font-family: var(--mono); font-weight: 700; font-size: 15px; color: var(--red); }
-
-  /* ── CONSOLIDATED ── */
-  #consolidated-view { display: none; }
-  .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
-  .sumcard {
-    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
-    padding: 16px 18px; display: flex; justify-content: space-between; align-items: flex-start;
-  }
-  .sumcard-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing:.07em; margin-bottom:6px; }
-  .sumcard-val { font-family: var(--mono); font-size: 22px; font-weight: 600; }
-  .sumcard-icon { font-size: 22px; }
-  .two-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .con-cat-table { margin-bottom: 16px; }
-  .con-cat-head {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 14px; background: var(--bg); border-radius: 6px 6px 0 0;
-    border-bottom: 1px solid var(--border2);
-  }
-  .con-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .con-tbl th {
-    padding: 8px 12px; text-align: left; font-size: 10px; color: var(--text3);
-    font-weight: 600; text-transform: uppercase; letter-spacing:.07em;
-    background: var(--bg); border-bottom: 1px solid var(--border2); white-space: nowrap;
-  }
-  .con-tbl td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
-  .con-tbl tr:hover td { background: var(--bg3); }
-  .con-tbl .tr-total td {
-    border-top: 2px solid var(--border2); background: var(--bg);
-    font-weight: 700; border-bottom: none;
-  }
-  .grand-total {
-    background: #0d1f10; border: 2px solid var(--green-dim); border-radius: 12px;
-    padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;
-    margin-top: 8px;
-  }
-  .gt-label { font-weight: 700; font-size: 16px; color: var(--green); }
-  .gt-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
-  .gt-val { font-family: var(--mono); font-weight: 700; font-size: 30px; color: var(--red); }
-
-  /* ── EXPORT ── */
-  .export-section {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px 24px; margin-bottom: 20px;
-    display: none;
-  }
-  .export-section.show { display: block; }
-  .export-title { font-weight: 700; font-size: 15px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-  .export-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .export-btn {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--bg3); border: 1px solid var(--border2);
-    border-radius: 8px; padding: 13px 16px; cursor: pointer;
-    transition: all .15s; text-align: left; width: 100%;
-  }
-  .export-btn:hover { border-color: #16a34a; background: rgba(34,197,94,0.07); }
-  .export-btn-icon { font-size: 22px; flex-shrink: 0; }
-  .export-btn-label { font-size: 13px; font-weight: 600; color: var(--text); }
-  .export-btn-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
-  .export-options {
-    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-    padding: 12px 0 4px 0; border-top: 1px solid var(--border); margin-top: 14px;
-  }
-  .export-opt-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing:.06em; }
-  .export-scope-btn {
-    padding: 5px 12px; border-radius: 5px; border: 1px solid var(--border2);
-    background: var(--bg); color: var(--text2); font-size: 11px; cursor: pointer;
-    font-family: var(--sans); transition: all .15s;
-  }
-  .export-scope-btn.active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); font-weight: 600; }
-  @media (max-width: 700px) { .export-grid { grid-template-columns: 1fr; } }
-
-  /* ── PREVIEW MODAL ── */
-  #preview-overlay {
-    display: none; position: fixed; inset: 0; z-index: 998;
-    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
-    align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto;
-  }
-  #preview-overlay.show { display: flex; }
-  #preview-modal {
-    background: var(--bg2); border: 1px solid var(--border2);
-    border-radius: 16px; width: 100%; max-width: 900px;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-    animation: fadein .2s ease; overflow: hidden;
-  }
-  #preview-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 18px 24px; border-bottom: 1px solid var(--border);
-    background: var(--bg3);
-  }
-  #preview-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
-  #preview-subtitle { font-size: 11px; color: var(--text3); margin-top: 3px; font-family: var(--mono); }
-  #preview-close {
-    background: none; border: 1px solid var(--border2); color: var(--text2);
-    border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 15px;
-    transition: all .15s;
-  }
-  #preview-close:hover { border-color: var(--red-dim); color: var(--red); }
-  #preview-table-wrap {
-    overflow-x: auto; max-height: 420px; overflow-y: auto;
-  }
-  #preview-table {
-    width: 100%; border-collapse: collapse; font-size: 12px;
-  }
-  #preview-table thead th {
-    position: sticky; top: 0; background: var(--bg);
-    padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 600;
-    color: var(--text3); text-transform: uppercase; letter-spacing: .06em;
-    border-bottom: 1px solid var(--border2); white-space: nowrap; z-index: 2;
-  }
-  #preview-table tbody td {
-    padding: 8px 12px; border-bottom: 1px solid var(--border);
-    color: var(--text); white-space: nowrap; max-width: 260px;
-    overflow: hidden; text-overflow: ellipsis;
-  }
-  #preview-table tbody tr:hover td { background: var(--bg3); }
-  #preview-table tbody tr:last-child td {
-    background: var(--bg); font-weight: 700; border-top: 2px solid var(--border2);
-    border-bottom: none; color: var(--green);
-  }
-  #preview-footer {
-    padding: 16px 24px; border-top: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center; gap: 12px;
-    background: var(--bg3); flex-wrap: wrap;
-  }
-  #preview-info { font-size: 12px; color: var(--text2); }
-  #preview-info strong { color: var(--text); }
-  #preview-download-btn {
-    background: var(--green-dim); color: #fff; border: none;
-    border-radius: 8px; padding: 10px 22px; font-family: var(--sans);
-    font-weight: 600; font-size: 13px; cursor: pointer; transition: background .15s;
-    display: flex; align-items: center; gap: 8px;
-  }
-  #preview-download-btn:hover { background: var(--green); }
-  #preview-cancel-btn {
-    background: none; border: 1px solid var(--border2); color: var(--text2);
-    border-radius: 8px; padding: 9px 18px; font-family: var(--sans);
-    font-size: 13px; cursor: pointer; transition: all .15s;
-  }
-  #preview-cancel-btn:hover { border-color: var(--text2); color: var(--text); }
-
-  /* ── ALERTS ── */
-  #error-bar {
-    display: none; background: #1a0a0a; border: 1px solid var(--red-dim);
-    border-radius: 8px; padding: 11px 16px; margin-bottom: 16px;
-    font-size: 12px; color: var(--red); align-items: center; justify-content: space-between;
-  }
-  #error-bar.show { display: flex; }
-  #loading-overlay {
-    display: none; text-align: center; padding: 60px 0; color: var(--text3);
-  }
-  #loading-overlay.show { display: block; }
-  .spinner { font-size: 28px; animation: spin 1s linear infinite; display: inline-block; margin-bottom: 10px; }
-  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-  .empty-state { text-align: center; padding: 60px 0; color: var(--text3); }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; }
-
-  /* syncing indicator */
-  #sync-status { font-size: 11px; color: var(--text3); font-family: var(--mono); }
-  #sync-status.syncing { color: #388bfd; }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 900px) {
-    #entry-view { grid-template-columns: 1fr; }
-    .summary-grid { grid-template-columns: repeat(2,1fr); }
-    .two-panel { grid-template-columns: 1fr; }
-    .two-col, .three-col { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 600px) {
-    #header { padding: 0 14px; flex-wrap: wrap; height: auto; padding: 10px 14px; gap: 8px; }
-    .nav-tabs { order: 3; width: 100%; }
-    #app { padding: 14px; }
-    .summary-grid { grid-template-columns: 1fr 1fr; }
-  }
-
-  /* ── PASSWORD MODAL ── */
-  #pwd-overlay {
-    display: none; position: fixed; inset: 0; z-index: 999;
-    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
-    align-items: center; justify-content: center;
-  }
-  #pwd-overlay.show { display: flex; }
-  #pwd-modal {
-    background: var(--bg2); border: 1px solid var(--border2);
-    border-radius: 16px; padding: 36px 40px; width: 380px; max-width: 90vw;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-    animation: fadein .2s ease;
-  }
-  #pwd-modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
-  #pwd-modal p  { font-size: 12px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
-
-  /* field label inside modal */
-  .modal-field { margin-bottom: 14px; }
-  .modal-field-label {
-    display: block; font-size: 10px; font-weight: 600; color: var(--text3);
-    text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px;
-  }
-
-  #pwd-name {
-    width: 100%; background: var(--bg); border: 1px solid var(--border2);
-    border-radius: 8px; padding: 11px 14px; color: var(--text);
-    font-family: var(--sans); font-size: 14px; outline: none;
-    transition: border .15s;
-    color-scheme: dark;
-  }
-  #pwd-name:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px var(--green-glow); }
-  #pwd-name::placeholder { color: var(--text3); }
-
-  #pwd-input {
-    width: 100%; background: var(--bg); border: 1px solid var(--border2);
-    border-radius: 8px; padding: 11px 14px; color: var(--text);
-    font-family: var(--mono); font-size: 15px; outline: none;
-    letter-spacing: .12em; transition: border .15s;
-    color-scheme: dark;
-  }
-  #pwd-input:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px var(--green-glow); }
-  #pwd-error { font-size: 12px; color: var(--red); min-height: 18px; margin-bottom: 14px; }
-  #pwd-submit {
-    width: 100%; background: var(--green-dim); color: #fff; border: none;
-    border-radius: 8px; padding: 12px; font-family: var(--sans); font-weight: 600;
-    font-size: 14px; cursor: pointer; transition: background .15s;
-  }
-  #pwd-submit:hover { background: var(--green); }
-  #pwd-cancel {
-    width: 100%; background: none; border: 1px solid var(--border2); color: var(--text2);
-    border-radius: 8px; padding: 10px; font-family: var(--sans); font-size: 13px;
-    cursor: pointer; margin-top: 8px; transition: all .15s;
-  }
-  #pwd-cancel:hover { border-color: var(--text2); color: var(--text); }
-
-  /* unlocked badge — now shows name */
-  .loc-unlocked-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--green-glow); border: 1px solid var(--green-dim);
-    color: var(--green); border-radius: 6px; padding: 4px 10px;
-    font-size: 11px; font-weight: 600; margin-left: 10px;
-  }
-  .loc-unlocked-badge .badge-name {
-    color: var(--text); font-weight: 400; border-left: 1px solid var(--green-dim);
-    padding-left: 8px; margin-left: 2px;
-  }
-</style>
-</head>
-<body>
-
-<!-- ═══ HEADER ═══ -->
-<div id="header">
-  <div class="logo">
-    <div class="logo-icon">📦</div>
-    <div>
-      <div class="logo-text">OOS Tracker</div>
-      <div class="logo-sub"><span class="conn-dot"></span>Live · <span id="sync-countdown">syncing...</span></div>
-    </div>
-  </div>
-  <div class="nav-tabs">
-    <button class="nav-btn" onclick="switchView('entry')">📝 Record OOS</button>
-    <button class="nav-btn" onclick="switchView('consolidated')">📊 Dashboard</button>
-  </div>
-  <div class="header-actions">
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"><span id="theme-icon">🌙</span> Night</button>
-    <button class="refresh-btn" onclick="loadEntries()">↻ Refresh</button>
-  </div>
-</div>
-
-<!-- ═══ APP ═══ -->
-<div id="app">
-
-  <!-- Error bar -->
-  <div id="error-bar">
-    <span id="error-msg">⚠️ Error</span>
-    <button onclick="this.closest('#error-bar').classList.remove('show')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;">✕</button>
-  </div>
-
-  <!-- Filter bar -->
-  <div id="filter-bar">
-    <span class="filter-label">Filters:</span>
-    <select class="fsel" id="filter-cat" onchange="applyFilters()">
-      <option value="">All Categories</option>
-    </select>
-    <select class="fsel" id="filter-loc" onchange="applyFilters()">
-      <option value="">All Locations</option>
-    </select>
-    <span class="filter-label" style="margin-left:10px">Period:</span>
-    <input type="date" class="fsel" id="filter-date-from" onchange="applyFilters()" style="color-scheme:dark" placeholder="From">
-    <input type="date" class="fsel" id="filter-date-to" onchange="applyFilters()" style="color-scheme:dark" placeholder="To">
-    <button class="clear-btn" onclick="clearFilters()" id="clear-btn" style="display:none">✕ Clear</button>
-    <div class="filter-summary" id="filter-summary">Loading...</div>
-  </div>
-
-  <!-- ═══ EXPORT SECTION ═══ -->
-  <div class="export-section" id="export-section">
-    <div class="export-title">📥 Export Data</div>
-
-    <div class="export-options">
-      <span class="export-opt-label">Export scope:</span>
-      <button class="export-scope-btn active" id="scope-filtered" onclick="setExportScope('filtered')">Current View (filtered)</button>
-      <button class="export-scope-btn" id="scope-all" onclick="setExportScope('all')">All Records</button>
-      <span id="export-scope-note" style="font-size:11px;color:var(--text3);margin-left:4px"></span>
-    </div>
-
-    <div class="export-grid" style="margin-top:14px">
-      <button class="export-btn" onclick="previewData('all')">
-        <span class="export-btn-icon">📊</span>
-        <div>
-          <div class="export-btn-label">Full OOS Data</div>
-          <div class="export-btn-sub">All columns — one row per entry</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('location')">
-        <span class="export-btn-icon">📍</span>
-        <div>
-          <div class="export-btn-label">Summary by Location</div>
-          <div class="export-btn-sub">Revenue lost per branch</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('category')">
-        <span class="export-btn-icon">🗂️</span>
-        <div>
-          <div class="export-btn-label">Summary by Category</div>
-          <div class="export-btn-sub">Revenue lost per product category</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('product')">
-        <span class="export-btn-icon">📦</span>
-        <div>
-          <div class="export-btn-label">Summary by Product</div>
-          <div class="export-btn-sub">Top OOS products ranked by revenue</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('date')">
-        <span class="export-btn-icon">📅</span>
-        <div>
-          <div class="export-btn-label">Summary by Date</div>
-          <div class="export-btn-sub">Daily revenue lost breakdown</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('pivot')">
-        <span class="export-btn-icon">🔁</span>
-        <div>
-          <div class="export-btn-label">Location × Category Pivot</div>
-          <div class="export-btn-sub">Cross-tabulation of all branches</div>
-        </div>
-      </button>
-    </div>
-  </div>
-
-  <!-- ═══ ENTRY VIEW ═══ -->
-  <div id="entry-view">
-    <div class="card">
-      <div class="card-title">📝 Record Out-of-Stock Entry</div>
-
-      <div class="two-col">
-        <div class="field-group">
-          <label class="field-label">Location / Branch *</label>
-          <select class="field-input" id="f-location" onchange="onLocationChange()">
-            <option value="">— Select Location —</option>
-            <option value="Nairobi">Nairobi</option>
-            <option value="Nakuru">Nakuru</option>
-            <option value="Kisumu">Kisumu</option>
-            <option value="Mombasa">Mombasa</option>
-            <option value="Nanyuki">Nanyuki</option>
-            <option value="Sotik">Sotik</option>
-            <option value="Eldoret">Eldoret</option>
-            <option value="Nyahururu">Nyahururu</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label class="field-label">Date *</label>
-          <input type="date" class="field-input" id="f-date">
-        </div>
-      </div>
-
-      <div class="field-group dd-wrap">
-        <label class="field-label">Product Code / Description *</label>
-        <input class="field-input" id="f-product-search" placeholder="Search by code or name..." autocomplete="off"
-          oninput="filterProducts()" onfocus="openDropdown()" onclick="openDropdown()">
-        <div id="product-dropdown">
-          <div style="padding:10px 14px;font-size:11px;color:var(--text3)">Type to search products...</div>
-        </div>
-      </div>
-
-      <div id="product-strip">
-        <div class="strip-item"><div class="si-label">Category</div><div class="si-value" id="si-cat">—</div></div>
-        <div class="strip-item"><div class="si-label">Packaging</div><div class="si-value" id="si-pkg">—</div></div>
-        <div class="strip-item"><div class="si-label">Weight</div><div class="si-value" id="si-wt">—</div></div>
-        <div class="strip-item"><div class="si-label">Unit Price</div><div class="si-value" id="si-price">—</div></div>
-      </div>
-
-      <div class="three-col">
-        <div class="field-group">
-          <label class="field-label">Quantity OOS *</label>
-          <input type="number" min="0" class="field-input" id="f-qty" placeholder="0" oninput="updateRevPreview()">
-        </div>
-        <div class="field-group">
-          <label class="field-label">Reason for Lost Sale *</label>
-          <input class="field-input" id="f-notes" placeholder="e.g. Supplier delay, overstock elsewhere...">
-        </div>
-      </div>
-
-      <div id="rev-preview">
-        <div class="rev-label">⚠️ Estimated Revenue Lost</div>
-        <div class="rev-value" id="rev-val">KES 0</div>
-      </div>
-
-      <div style="display:flex;align-items:center">
-        <button id="submit-btn" onclick="submitEntry()">✓ Submit</button>
-        <span id="save-feedback">✅ Successfully Submitted!</span>
-      </div>
-    </div>
-
-    <!-- Side stats -->
-    <div class="side-stats">
-      <div class="stat-card">
-        <div class="stat-label">Today's OOS Entries</div>
-        <div class="stat-big" id="today-count">0</div>
-        <div class="stat-sub">Revenue Lost: <em id="today-rev">KES 0</em></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:12px">Top Locations by OOS Value</div>
-        <div id="loc-bars"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:12px">OOS by Category</div>
-        <div id="cat-mini"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ RECORDS VIEW ═══ -->
-  <div id="records-view">
-    <div class="card">
-      <div class="card-title">📋 OOS Records <span id="rec-title-sub" style="font-weight:400;font-size:12px;color:var(--text2)"></span></div>
-      <div id="loading-overlay"><div class="spinner">⟳</div><br>Loading from Google Sheets...</div>
-      <div id="records-content">
-        <div class="tbl-wrap">
-          <div class="tbl-head">
-            <div class="th">Date</div>
-            <div class="th">Product</div>
-            <div class="th">Category</div>
-            <div class="th">Location</div>
-            <div class="th">Qty</div>
-            <div class="th">Price</div>
-            <div class="th">Revenue Lost</div>
-            <div class="th"></div>
-          </div>
-          <div class="tbl-body" id="tbl-body">
-            <div class="empty-state"><div class="empty-icon">📭</div>No OOS records found.</div>
-          </div>
-          <div class="tbl-total">
-            <span class="tbl-total-label">Total Revenue Lost:</span>
-            <span class="tbl-total-val" id="tbl-grand">KES 0</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ CONSOLIDATED VIEW ═══ -->
-  <div id="consolidated-view">
-    <div class="summary-grid">
-      <div class="sumcard">
-        <div><div class="sumcard-label">Total OOS Entries</div><div class="sumcard-val" id="sc-entries" style="color:#60a5fa">0</div></div>
-        <div class="sumcard-icon">📦</div>
-      </div>
-      <div class="sumcard">
-        <div><div class="sumcard-label">Revenue Lost</div><div class="sumcard-val" id="sc-rev" style="color:var(--red)">KES 0</div></div>
-        <div class="sumcard-icon">💸</div>
-      </div>
-      <div class="sumcard">
-        <div><div class="sumcard-label">Locations Reporting</div><div class="sumcard-val" id="sc-locs" style="color:var(--green)">0</div></div>
-        <div class="sumcard-icon">📍</div>
-      </div>
-      <div class="sumcard">
-        <div><div class="sumcard-label">Categories Affected</div><div class="sumcard-val" id="sc-cats" style="color:var(--amber)">0</div></div>
-        <div class="sumcard-icon">🗂️</div>
-      </div>
-    </div>
-
-    <div class="two-panel">
-      <div class="card">
-        <div class="card-title">📍 Revenue Lost by Location</div>
-        <div id="loc-breakdown"><div style="color:var(--text3);font-size:12px">No data</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">🗂️ Revenue Lost by Category</div>
-        <div id="cat-breakdown"><div style="color:var(--text3);font-size:12px">No data</div></div>
-      </div>
-    </div>
-
-    <div id="cat-tables"></div>
-
-    <div class="grand-total" id="grand-total" style="display:none">
-      <div>
-        <div class="gt-label">GRAND TOTAL — REVENUE LOST</div>
-        <div class="gt-sub" id="gt-sub"></div>
-      </div>
-      <div class="gt-val" id="gt-val">KES 0</div>
-    </div>
-  </div>
-
-</div><!-- /app -->
-
-<script>
-// ═══════════════════════════════════════════════════
-//  CONFIG
-// ═══════════════════════════════════════════════════
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLeMx6kfOvjWCXSvgE6rKYavZSJcvOpHuBeJB1dXwTgGTjNmGuQ8lGLb4RhPS9Oahm/exec";
-// NOTE: Apps Script doGet() must handle ?callback=fnName for JSONP:
-// if(e.parameter.callback){ return ContentService.createTextOutput(e.parameter.callback+'('+JSON.stringify(result)+')').setMimeType(ContentService.MimeType.JAVASCRIPT); }
-
-// ═══════════════════════════════════════════════════
-//  PRODUCT DATA
-// ═══════════════════════════════════════════════════
-const PRODUCTS = [
-  {code:"20",desc:"GOLD CROWN TFA 1/2LT 1x 12",pkg:"Cartons",wt:6.0,price:636.0,cat:"TFA"},
-  {code:"21",desc:"KCC FRESH TFA 1x 12 x 1/2 lt",pkg:"Cartons",wt:6.0,price:624.0,cat:"TFA"},
-  {code:"83",desc:"TAIFA TFA 1*12*500 ML",pkg:"Cartons",wt:6.0,price:612.0,cat:"FRESH MILK"},
-  {code:"29",desc:"TAIFA TFA 1*24*250 ML",pkg:"Cartons",wt:6.0,price:678.48,cat:"FRESH MILK"},
-  {code:"23",desc:"GOLD CROWN TCA1 2DCL 1x 21",pkg:"Cartons",wt:4.2,price:525.0,cat:"TCA"},
-  {code:"27",desc:"KCC FRESH TCA1 2DL 1x 21",pkg:"Cartons",wt:4.2,price:504.0,cat:"TCA"},
-  {code:"12",desc:"TAIFA TCA DCL 1*21*200 ML",pkg:"Cartons",wt:4.2,price:525.0,cat:"TCA"},
-  {code:"28",desc:"KCC SCHOOL TCA1 2DL 1x 21",pkg:"Cartons",wt:4.2,price:860.0,cat:"TCA"},
-  {code:"24",desc:"ASEPTIC POUCH 18*500ML G/C",pkg:"Cartons",wt:6.0,price:612.0,cat:"ESL"},
-  {code:"30",desc:"esl 450 ml",pkg:"Cartons",wt:5.4,price:540.0,cat:"ESL"},
-  {code:"26a",desc:"ESL GOLD GROWN 200 ML",pkg:"Cartons",wt:4.2,price:512.0,cat:"ESL"},
-  {code:"13",desc:"TAIFA ESL -200 ML",pkg:"Cartons",wt:4.2,price:445.2,cat:"ESL"},
-  {code:"26",desc:"ESL ASEPTIC POUCH 200 ML G/C 1*24*200ML",pkg:"Cartons",wt:4.800000000000001,price:512.4000000000001,cat:"ESL"},
-  {code:"18",desc:"TBA G/C 1*12*1 LTR LACTOSE FREE",pkg:"Packs",wt:12.0,price:1920.0,cat:"LACTOSE"},
-  {code:"17",desc:"LACTOSE FREE 12*500ML",pkg:"Cartons",wt:6.0,price:900.0,cat:"LACTOSE"},
-  {code:"71",desc:"TBA GC 1LT",pkg:"Cartons",wt:4.0,price:1644.0,cat:"UHT"},
-  {code:"73C",desc:"UHT FULL CREAM 1L",pkg:"Cartons",wt:4.0,price:458.0,cat:"UHT"},
-  {code:"73B",desc:"UHT FULL CREAM WITH CUPS 1L",pkg:"Cartons",wt:12.0,price:1308.0,cat:"UHT"},
-  {code:"81",desc:"UHT FULL CREAM 500ML",pkg:"Cartons",wt:6.0,price:732.0,cat:"UHT"},
-  {code:"82",desc:"KCC UHT FULL CREAM 1X24X250 ML SLIM",pkg:"Cartons",wt:6.0,price:816.0,cat:"UHT"},
-  {code:"73",desc:"KCC UHT FULL CREAM 1X12X1 LTR",pkg:"Cartons",wt:12.0,price:1644.0,cat:"UHT"},
-  {code:"500",desc:"Gold Crown Purified Drinking Water 1*24*300ML Bottle",pkg:"Trays",wt:7.199999999999999,price:456.0,cat:"WATER"},
-  {code:"501",desc:"Gold Crown Purified Drinking Water 1*24*500ML Bottle",pkg:"Trays",wt:12.0,price:576.0,cat:"WATER"},
-  {code:"502",desc:"Gold Crown Purified Drinking Water 1*12*1L Bottle",pkg:"Trays",wt:12.0,price:528.0,cat:"WATER"},
-  {code:"503",desc:"Gold Crown Purified Drinking Water 1*12*1.5LTR Bottle",pkg:"Trays",wt:18.0,price:768.0,cat:"WATER"},
-  {code:"88",desc:"PLAIN MALA (1x16) 1/2 (TR)",pkg:"PCS",wt:0.5,price:85.0,cat:"MALA"},
-  {code:"110",desc:"MALA TR-1LITRE",pkg:"PCS",wt:0.5,price:165.0,cat:"MALA"},
-  {code:"69",desc:"MALA 1L BOTTLE",pkg:"PCS",wt:1.0,price:165.0,cat:"MALA"},
-  {code:"63",desc:"PLAIN MALA 1/2 LT BOTTLE",pkg:"PCS",wt:0.5,price:85.0,cat:"MALA"},
-  {code:"65",desc:"12*500 ML SLEEVED MALA BOTTLE",pkg:"Trays",wt:6.0,price:956.28,cat:"MALA"},
-  {code:"60",desc:"BOTTLED MALA(1*12*250ML) SLEEVE",pkg:"Trays",wt:3.0,price:561.5999999999999,cat:"MALA"},
-  {code:"15",desc:"SWEETENED MALA -500 ML",pkg:"Trays",wt:6.0,price:1072.92,cat:"MALA"},
-  {code:"10",desc:"SWEETENED MALA 1L",pkg:"PCS",wt:1.0,price:175.0,cat:"MALA"},
-  {code:"14",desc:"SWEETENED MALA -250 ML",pkg:"Trays",wt:3.0,price:564.5999999999999,cat:"MALA"},
-  {code:"134",desc:"500ML FILPAK MALA",pkg:"Crates",wt:0.5,price:1260.0,cat:"MALA"},
-  {code:"135",desc:"MALA 200ML POUCH",pkg:"Crates",wt:0.2,price:630.0,cat:"MALA"},
-  {code:"9",desc:"SWEETEND MALA POUCH",pkg:"Crates",wt:0.5,price:1350.0,cat:"MALA"},
-  {code:"200",desc:"VANNILA YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:1.7999999999999998,price:540.0,cat:"YOGHURT"},
-  {code:"201",desc:"VANNILA YOGHURT 0.25 LT CUPS",pkg:"Trays",wt:3.0,price:696.0,cat:"YOGHURT"},
-  {code:"202",desc:"VANNILA YOGHURT 0.5 LT CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
-  {code:"36",desc:"VANILLA CUP 100 ML",pkg:"Trays",wt:1.2,price:200.0,cat:"YOGHURT"},
-  {code:"203",desc:"STRAW BERRY YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:1.7999999999999998,price:540.0,cat:"YOGHURT"},
-  {code:"204",desc:"STRAW BERRY YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3.0,price:696.0,cat:"YOGHURT"},
-  {code:"205",desc:"STRAW BERRY YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
-  {code:"206",desc:"MANGO YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:1.7999999999999998,price:540.0,cat:"YOGHURT"},
-  {code:"207",desc:"MANGO YOGHURT 0.25LT  CUPS",pkg:"Trays",wt:1.7999999999999998,price:696.0,cat:"YOGHURT"},
-  {code:"208",desc:"MANGO YOGHURT 0.5LT  CUPS",pkg:"Trays",wt:3.0,price:647.28,cat:"YOGHURT"},
-  {code:"209",desc:"PINEAPPLE YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:3.0,price:540.0,cat:"YOGHURT"},
-  {code:"215",desc:"COCONUT YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:3.0,price:540.0,cat:"YOGHURT"},
-  {code:"216",desc:"COCONUT YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3.0,price:696.0,cat:"YOGHURT"},
-  {code:"217",desc:"COCONUT YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
-  {code:"218",desc:"NATURAL YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:1.5,price:540.0,cat:"YOGHURT"},
-  {code:"219",desc:"NATURAL YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3.0,price:756.0,cat:"YOGHURT"},
-  {code:"220",desc:"NATURAL YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
-  {code:"210",desc:"PINEAPPLE YOGHURT 0.25LT  CUPS",pkg:"Trays",wt:3.0,price:696.0,cat:"YOGHURT"},
-  {code:"211",desc:"PINEAPPLE YOGHURT 0.5LT  CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
-  {code:"40",desc:"KCC VANILLA YOGHURT (1x16) 1/2LT (TR)",pkg:"Trays",wt:8.0,price:1612.16,cat:"YOGHURT"},
-  {code:"41",desc:"KCC STRAWBERRY YOGHURT (1x16) 1/2LT (TR)",pkg:"Trays",wt:8.0,price:1612.16,cat:"YOGHURT"},
-  {code:"121",desc:"TCA 1*21*200ML STRAWBERRY MILK SHAKE",pkg:"Trays",wt:4.2,price:777.0,cat:"SHAKES"},
-  {code:"120",desc:"TCA 1*21*200ML CHOCOLATE MILK SHAKE",pkg:"Trays",wt:4.2,price:777.0,cat:"SHAKES"},
-  {code:"122",desc:"TCA 1*21*200ML VANILLA MILK SHAKE",pkg:"Trays",wt:4.2,price:777.0,cat:"SHAKES"},
-  {code:"75",desc:"STRAWBERRY FLAVOUR 1*24*250 ML SHAKES",pkg:"Cartons",wt:6.0,price:1440.0,cat:"SHAKES"},
-  {code:"79",desc:"VANILLA FLAVOUR 1*24*250 ML SHAKES",pkg:"Cartons",wt:6.0,price:1440.0,cat:"SHAKES"},
-  {code:"77",desc:"CHOCOLATE FLAVOUR 1*24*250 ML SHAKES",pkg:"Cartons",wt:6.0,price:1440.0,cat:"SHAKES"},
-  {code:"432",desc:"RINDLESS CHEDDAR 150gms*90",pkg:"Cartons",wt:0.15,price:280.0,cat:"CHEESE"},
-  {code:"430",desc:"RINDLESS CHEDDAR 250gms",pkg:"Cartons",wt:0.25,price:450.0,cat:"CHEESE"},
-  {code:"433",desc:"RINDLESS CHEDDAR 500 gms",pkg:"Cartons",wt:0.5,price:785.0,cat:"CHEESE"},
-  {code:"436",desc:"RINDLESS CHEDDAR 1 KG",pkg:"Cartons",wt:1.0,price:1345.0,cat:"CHEESE"},
-  {code:"600",desc:"SALTED BUTTER TUBS 1*18* 0.5KG",pkg:"Cartons",wt:9.0,price:16516.62,cat:"BUTTER"},
-  {code:"601",desc:"SALTED BUTTER TUBS 1*24* 0.25KG",pkg:"Cartons",wt:6.0,price:12945.599999999999,cat:"BUTTER"},
-  {code:"602",desc:"UNSALTED BUTTER TUBS 1*18* 0.5KG",pkg:"Cartons",wt:9.0,price:16516.62,cat:"BUTTER"},
-  {code:"603",desc:"UNSALTED BUTTER TUBS 1*24* 0.25KG",pkg:"Cartons",wt:6.0,price:12945.599999999999,cat:"BUTTER"},
-  {code:"604",desc:"SALTED BUTTER 1*20*0.5KG",pkg:"Cartons",wt:10.0,price:18351.8,cat:"BUTTER"},
-  {code:"605",desc:"SALTED BUTTER 1*40*0.25KG",pkg:"Cartons",wt:10.0,price:21576.0,cat:"BUTTER"},
-  {code:"646",desc:"UNSALTED BUTTER 1*20* 0.5KG",pkg:"Cartons",wt:10.0,price:18351.8,cat:"BUTTER"},
-  {code:"709",desc:"SALTED MINI BUTTER 1x100x10 GMS x 12",pkg:"Cartons",wt:1.2,price:32532.0,cat:"BUTTER"},
-  {code:"606",desc:"SALTED MINI BUTTER TUB 1x24x8 GMS x 12",pkg:"Cartons",wt:2.3,price:7807.68,cat:"BUTTER"},
-  {code:"756",desc:"BULK BUTTER UNSALTED 25 KGS",pkg:"Cartons",wt:25.0,price:44010.0,cat:"BUTTER"},
-  {code:"757",desc:"BULK UNSALTED BUTTER 10 KGS",pkg:"Cartons",wt:10.0,price:19400.0,cat:"BUTTER"},
-  {code:"758",desc:"BULK SALTED BUTTER 10 KGS",pkg:"Cartons",wt:10.0,price:19400.0,cat:"BUTTER"},
-  {code:"1036",desc:"DRIED POWDER 1*12*400 GRMS",pkg:"BAGS",wt:4.8,price:6408.0,cat:"POWDER"},
-  {code:"1037",desc:"DRIED MILK POWDER 1*12*900 GRMS",pkg:"Bags",wt:10.8,price:14652.0,cat:"POWDER"},
-  {code:"1038",desc:"DRIED POWDER 1*6*2.50 KG TIN",pkg:"Bags",wt:15.0,price:17670.0,cat:"POWDER"},
-  {code:"1031",desc:"DRIED WHOLE MILK POWDER 1 x 25 KG BAG",pkg:"Bags",wt:25.0,price:22000.0,cat:"POWDER"},
-  {code:"1033",desc:"DRIED WHOLE MILK POWDER 1KG x 6 TINS",pkg:"Bags",wt:6.0,price:5439.0,cat:"POWDER"},
-  {code:"1034",desc:"DRIED WHOLE MILK POWDER 2KG x 6 TINS",pkg:"Bags",wt:12.0,price:10671.0,cat:"POWDER"},
-  {code:"1035",desc:"DRIED WHOLE MILK POWDER 1/2 KG X 20 TINS",pkg:"Bags",wt:10.0,price:9320.0,cat:"POWDER"},
-  {code:"1021",desc:"DRIED SKIMMED MILK POWDER 1 x 25 KG BAG",pkg:"Bags",wt:25.0,price:21000.0,cat:"POWDER"},
-  {code:"885",desc:"SUPERFINE GHEE 20 x 1/2KG TINS",pkg:"Cartons",wt:10.0,price:9440.0,cat:"GHEE"},
-  {code:"882",desc:"SUPERFINE GHEE 12 x 1KG TINS",pkg:"Cartons",wt:12.0,price:10284.0,cat:"GHEE"},
-  {code:"876",desc:"SUPERFINE GHEE 6 x 3KG TINS",pkg:"Cartons",wt:18.0,price:12327.0,cat:"GHEE"},
-  {code:"877",desc:"SUPERFINE GHEE 6 x 2KG TINS",pkg:"Cartons",wt:12.0,price:8574.0,cat:"GHEE"},
-  {code:"851",desc:"SUPERFINE GHEE 1 x 18KG PLASTIC",pkg:"Buckets",wt:18.0,price:17280.0,cat:"GHEE"},
-  {code:"68",desc:"GOLD CROWN 1X16X500ML (TR)",pkg:"PCS",wt:0.5,price:65.0,cat:"FRESH MILK"},
-  {code:"70",desc:"KCC FRESH MILK 1X16X500ML (TR)",pkg:"Crates",wt:8.0,price:956.16,cat:"FRESH MILK"},
-  {code:"55",desc:"GOLD CROWN FILPAK 1X18X500ML POUCH",pkg:"Crates",wt:9.0,price:936.0,cat:"FRESH MILK"},
-  {code:"59",desc:"GOLD CROWN FILPAK 1X45X200ML POUCH",pkg:"Crates",wt:9.0,price:945.0,cat:"FRESH MILK"},
-  {code:"84",desc:"KCC FRESH FILPAK 1X18X500ML POUCH",pkg:"Crates",wt:9.0,price:936.0,cat:"FRESH MILK"},
-  {code:"86",desc:"KCC FRESH FILPAK 1X45X200ML POUCH",pkg:"Crates",wt:9.0,price:900.0,cat:"FRESH MILK"},
-  {code:"85",desc:"TAIFA FRESH FILPAK 1X18X500ML POUCH",pkg:"Crates",wt:9.0,price:900.0,cat:"FRESH MILK"},
-  {code:"54",desc:"TAIFA FRESH FILPAK 1X45X200ML POUCH",pkg:"Crates",wt:9.0,price:360.0,cat:"FRESH MILK"},
-  {code:"97",desc:"KCC FRESH MILK 500ML BOTTLE",pkg:"PCS",wt:0.5,price:70.0,cat:"FRESH MILK"},
-  {code:"98",desc:"GOLD CROWN FRESH MILK  500ML BOTTLE",pkg:"PCS",wt:0.5,price:70.0,cat:"FRESH MILK"},
-  {code:"100",desc:"GOLD CROWN FRESH MILK 1X35X1LT BOTTLE",pkg:"PCS",wt:1.0,price:130.0,cat:"FRESH MILK"},
-  {code:"101",desc:"GOLD CROWN FRESH MILK 1X18X2LT BOTTLE",pkg:"PCS",wt:2.0,price:250.0,cat:"FRESH MILK"},
-  {code:"102",desc:"GOLD CROWN FRESH MILK 1X10X3LT BOTTLE",pkg:"PCS",wt:3.0,price:390.0,cat:"FRESH MILK"},
-  {code:"103",desc:"GOLD CROWN STANDARD 1X35X1LT BOTTLE",pkg:"PCS",wt:1.0,price:130.0,cat:"FRESH MILK"},
-  {code:"104",desc:"GOLD CROWN STANDARD 1X18X2LT BOTTLE",pkg:"PCS",wt:2.0,price:250.0,cat:"FRESH MILK"},
-  {code:"105",desc:"GOLD CROWN STANDARD 1X10X3LT BOTTLE",pkg:"PCS",wt:3.0,price:390.0,cat:"FRESH MILK"},
-  {code:"106",desc:"GOLD CROWN LOWFAT 1X18X2LT BOTTLE",pkg:"PCS",wt:2.0,price:250.0,cat:"FRESH MILK"},
-  {code:"107",desc:"GOLD CROWN LOWFAT 1X10X3LT BOTTLE",pkg:"PCS",wt:3.0,price:390.0,cat:"FRESH MILK"},
-  {code:"108",desc:"GOLD CROWN FRESH MILK 5 LITRE BOTTLE",pkg:"PCS",wt:5.0,price:580.0,cat:"FRESH MILK"},
-  {code:"51",desc:"BULK FRESH MILK 50 LITRE CAN",pkg:"PCS",wt:50.0,price:4500.0,cat:"FRESH MILK"},
-  {code:"50",desc:"BULK FRESH MILK 20L PACK",pkg:"PCS",wt:20.0,price:2000.0,cat:"FRESH MILK"}
+const HEADERS = [
+  "Timestamp",
+  "Date",
+  "Location",
+  "Recorded By",
+  "Product Code",
+  "Description",
+  "Category",
+  "Packaging",
+  "Weight (KGS)",
+  "Unit Price (KES)",
+  "Quantity OOS",
+  "Revenue Lost (KES)",
+  "Notes"
 ];
 
-const CAT_COLORS = {
-  BUTTER:"#ca8a04",
-  CHEESE:"#b45309",
-  ESL:"#9333ea",
-  "FRESH MILK":"#0f766e",
-  GHEE:"#c2410c",
-  LACTOSE:"#dc2626",
-  MALA:"#d97706",
-  POWDER:"#6b7280",
-  SHAKES:"#7c3aed",
-  TCA:"#2563eb",
-  TFA:"#16a34a",
-  UHT:"#f59e0b",
-  WATER:"#0891b2",
-  YOGHURT:"#db2777"
-};
+// ── Utility: return the OOS_Data sheet, creating it if needed ──
+function getSheet() {
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(SHEET_NAME);
 
-// ═══════════════════════════════════════════════════
-//  LOCATION PASSWORDS
-// ═══════════════════════════════════════════════════
-const LOCATION_PASSWORDS = {
-  "Nairobi":   "Nairobi123",
-  "Nakuru":    "Nakuru123",
-  "Kisumu":    "Kisumu123",
-  "Mombasa":   "Mombasa123",
-  "Nanyuki":   "Nanyuki123",
-  "Sotik":     "Sotik123",
-  "Eldoret":   "Eldoret123",
-  "Nyahururu": "Nyahururu123"
-};
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
 
-// ═══════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════
-let allEntries = [];
-let filteredEntries = [];
-let selectedProduct = null;
-let currentView = 'entry';
-let unlockedLocation = null;
-let unlockedName = '';
+    var headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
+    headerRange.setValues([HEADERS]);
 
-// ═══════════════════════════════════════════════════
-//  HELPERS
-// ═══════════════════════════════════════════════════
-const fmt = n => new Intl.NumberFormat('en-KE',{style:'currency',currency:'KES',minimumFractionDigits:0}).format(n||0);
-const today = () => new Date().toISOString().split('T')[0];
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-function catBadge(cat){
-  const c = CAT_COLORS[cat]||'#6b7280';
-  return `<span class="cat-badge" style="background:${c}22;color:${c}">${esc(cat)}</span>`;
-}
-function showError(msg){ document.getElementById('error-msg').textContent='⚠️ '+msg; document.getElementById('error-bar').classList.add('show'); }
-function hideError(){ document.getElementById('error-bar').classList.remove('show'); }
-function setSyncing(on,msg=''){
-  const el=document.getElementById('sync-countdown');
-  if(on){ el.textContent=msg||'⟳ syncing...'; el.style.color='#388bfd'; }
-  else { el.style.color=''; updateCountdownDisplay(); }
-}
+    headerRange.setBackground("#1a3a2a");
+    headerRange.setFontColor("#ffffff");
+    headerRange.setFontWeight("bold");
+    headerRange.setFontSize(11);
+    headerRange.setHorizontalAlignment("center");
+    sheet.setFrozenRows(1);
 
-// ═══════════════════════════════════════════════════
-//  PASSWORD GATE
-// ═══════════════════════════════════════════════════
-function onLocationChange(){
-  const loc = document.getElementById('f-location').value;
-  if(!loc){ unlockedLocation=null; unlockedName=''; updateLockBadge(); return; }
-  if(unlockedLocation === loc) return;
-  unlockedLocation = null;
-  unlockedName = '';
-  updateLockBadge();
-  document.getElementById('pwd-loc-name').textContent = loc;
-  document.getElementById('pwd-name').value = '';
-  document.getElementById('pwd-input').value = '';
-  document.getElementById('pwd-error').textContent = '';
-  document.getElementById('pwd-overlay').classList.add('show');
-  setTimeout(()=>document.getElementById('pwd-name').focus(), 100);
-}
-
-function checkPassword(){
-  const loc = document.getElementById('f-location').value;
-  const name = document.getElementById('pwd-name').value.trim();
-  const entered = document.getElementById('pwd-input').value;
-
-  if(!name){
-    document.getElementById('pwd-error').textContent = '❌ Please enter your name.';
-    document.getElementById('pwd-name').focus();
-    return;
-  }
-  if(entered === LOCATION_PASSWORDS[loc]){
-    unlockedLocation = loc;
-    unlockedName = name;
-    document.getElementById('pwd-overlay').classList.remove('show');
-    document.getElementById('pwd-error').textContent = '';
-    updateLockBadge();
-  } else {
-    document.getElementById('pwd-error').textContent = '❌ Incorrect password. Please try again.';
-    document.getElementById('pwd-input').value = '';
-    document.getElementById('pwd-input').focus();
-  }
-}
-
-function cancelPassword(){
-  document.getElementById('f-location').value = '';
-  document.getElementById('pwd-overlay').classList.remove('show');
-  unlockedLocation = null;
-  unlockedName = '';
-  updateLockBadge();
-}
-
-function updateLockBadge(){
-  const existing = document.getElementById('loc-unlock-badge');
-  if(existing) existing.remove();
-  if(unlockedLocation){
-    const badge = document.createElement('span');
-    badge.id = 'loc-unlock-badge';
-    badge.className = 'loc-unlocked-badge';
-    badge.innerHTML = '🔓 ' + esc(unlockedLocation) + ' unlocked'
-      + (unlockedName ? `<span class="badge-name">👤 ${esc(unlockedName)}</span>` : '');
-    document.getElementById('f-location').after(badge);
-  }
-}
-
-// ═══════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════
-let syncInterval = null;
-let syncCountdown = 30;
-
-function startAutoSync(){
-  if(syncInterval) clearInterval(syncInterval);
-  syncCountdown = 10;
-  updateCountdownDisplay();
-  syncInterval = setInterval(()=>{
-    syncCountdown--;
-    updateCountdownDisplay();
-    if(syncCountdown <= 0){
-      syncCountdown = 10;
-      loadEntries();
-    }
-  }, 1000);
-}
-
-function updateCountdownDisplay(){
-  const el = document.getElementById('sync-countdown');
-  if(el) el.textContent = syncCountdown <= 5 ? `syncing in ${syncCountdown}s...` : `next sync in ${syncCountdown}s`;
-}
-
-function toggleTheme(){
-  const body = document.body;
-  const toggle = document.getElementById('theme-toggle');
-  
-  if(!toggle) return; // Safety check
-  
-  body.classList.toggle('light-theme');
-  const isLight = body.classList.contains('light-theme');
-  
-  localStorage.setItem('oos-theme', isLight ? 'light' : 'dark');
-  
-  if(isLight){
-    toggle.innerHTML = '<span id="theme-icon">☀️</span> Day';
-  } else {
-    toggle.innerHTML = '<span id="theme-icon">🌙</span> Night';
-  }
-}
-
-function initTheme(){
-  const saved = localStorage.getItem('oos-theme');
-  const toggle = document.getElementById('theme-toggle');
-  
-  if(saved === 'light' && toggle){
-    document.body.classList.add('light-theme');
-    toggle.innerHTML = '<span id="theme-icon">☀️</span> Day';
-  }
-}
-
-window.addEventListener('DOMContentLoaded', ()=>{
-  initTheme();
-  document.getElementById('f-date').value = today();
-  populateCatFilter();
-  loadEntries();
-  startAutoSync();
-  document.addEventListener('click', e=>{
-    if(!e.target.closest('.dd-wrap')) closeDropdown();
-  });
-
-  // Allow Tab from name → password field
-  document.getElementById('pwd-name').addEventListener('keydown', e=>{
-    if(e.key==='Enter'){ document.getElementById('pwd-input').focus(); }
-  });
-  document.getElementById('pwd-input').addEventListener('keydown', e=>{
-    if(e.key==='Enter') checkPassword();
-  });
-});
-
-// ═══════════════════════════════════════════════════
-//  DATA LOAD
-// ═══════════════════════════════════════════════════
-function loadEntries(){
-  setSyncing(true,'⟳ Loading...');
-  hideError();
-  
-  // Use JSONP to bypass CORS — this is more reliable with Apps Script
-  const cbName = 'oosCallback_' + Date.now();
-  const script = document.createElement('script');
-  
-  const timeout = setTimeout(()=>{
-    cleanup();
-    setSyncing(false);
-    startAutoSync();
-    showError('Request timed out — check your internet connection.');
-  }, 15000);
-
-  function cleanup(){
-    clearTimeout(timeout);
-    delete window[cbName];
-    if(script.parentNode) script.parentNode.removeChild(script);
+    sheet.setColumnWidth(1,  180); // Timestamp
+    sheet.setColumnWidth(2,  100); // Date
+    sheet.setColumnWidth(3,  120); // Location
+    sheet.setColumnWidth(4,  140); // Recorded By
+    sheet.setColumnWidth(5,  100); // Product Code
+    sheet.setColumnWidth(6,  280); // Description
+    sheet.setColumnWidth(7,  110); // Category
+    sheet.setColumnWidth(8,  100); // Packaging
+    sheet.setColumnWidth(9,  110); // Weight
+    sheet.setColumnWidth(10, 130); // Unit Price
+    sheet.setColumnWidth(11, 110); // Quantity OOS
+    sheet.setColumnWidth(12, 150); // Revenue Lost
+    sheet.setColumnWidth(13, 220); // Notes
   }
 
-  window[cbName] = function(data){
-    cleanup();
-    try {
-      if(data && data.success){
-        allEntries = (data.entries||[]).map(e=>({
-          id: e['Timestamp'],
-          rowIndex: e.rowIndex,
-          date: e['Date']||'',
-          location: e['Location']||'',
-          productCode: e['Product Code']||'',
-          description: e['Description']||'',
-          category: e['Category']||'',
-          packaging: e['Packaging']||'',
-          weight: parseFloat(e['Weight (KGS)'])||0,
-          price: parseFloat(e['Unit Price (KES)'])||0,
-          qty: parseFloat(e['Quantity OOS'])||0,
-          revenue: parseFloat(e['Revenue Lost (KES)'])||0,
-          notes: e['Notes']||'',
-          timestamp: e['Timestamp']||'',
-          recordedBy: e['Recorded By']||''
-        }));
-        populateLocFilter();
-        applyFilters();
-        updateSideStats();
-        setSyncing(false);
-        startAutoSync();
-      } else {
-        showError(data?.error || 'Failed to load data');
-        setSyncing(false);
-        startAutoSync();
-      }
-    } catch(e){
-      showError('Error processing data: ' + e.message);
-      setSyncing(false);
-      startAutoSync();
-    }
-  };
-
-  script.onerror = function(){
-    cleanup();
-    setSyncing(false);
-    startAutoSync();
-    showError('Cannot reach server. Make sure: 1) Internet is working, 2) Apps Script deployment URL is correct, 3) Apps Script is deployed as Web app with "Anyone" access');
-  };
-
-  script.src = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
-  document.head.appendChild(script);
+  return sheet;
 }
 
 // ═══════════════════════════════════════════════════
-//  FILTERS
+//  GET  — fetch all rows as JSON (supports JSONP via ?callback=)
 // ═══════════════════════════════════════════════════
-function populateCatFilter(){
-  const sel = document.getElementById('filter-cat');
-  const cats = [...new Set(PRODUCTS.map(p=>p.cat))].sort();
-  cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
-}
-function populateLocFilter(){
-  const sel = document.getElementById('filter-loc');
-  const current = sel.value;
-  sel.innerHTML = '<option value="">All Locations</option>';
-  const locs = [...new Set(allEntries.map(e=>e.location))].sort();
-  locs.forEach(l=>{ const o=document.createElement('option'); o.value=l; o.textContent=l; sel.appendChild(o); });
-  sel.value = current;
-}
-function applyFilters(){
-  const cat = document.getElementById('filter-cat').value;
-  const loc = document.getElementById('filter-loc').value;
-  const dateFrom = document.getElementById('filter-date-from').value;
-  const dateTo = document.getElementById('filter-date-to').value;
-  const hasFilter = cat||loc||dateFrom||dateTo;
-  document.getElementById('clear-btn').style.display = hasFilter?'inline-block':'none';
-  filteredEntries = allEntries.filter(e=>{
-    if(cat && e.category!==cat) return false;
-    if(loc && e.location!==loc) return false;
-    if(dateFrom && e.date < dateFrom) return false;
-    if(dateTo && e.date > dateTo) return false;
-    return true;
-  });
-  const total = filteredEntries.reduce((s,e)=>s+e.revenue,0);
-  document.getElementById('filter-summary').innerHTML =
-    `<span style="color:var(--text)">${filteredEntries.length}</span> records · Revenue Lost: <span>${fmt(total)}</span>`;
-  renderTable();
-  renderConsolidated();
-  // Update export scope note
-  const noteEl = document.getElementById('export-scope-note');
-  if(noteEl){ const d = exportScope==='all'?allEntries:filteredEntries; noteEl.textContent='('+d.length+' records)'; }
-}
-function clearFilters(){
-  document.getElementById('filter-cat').value='';
-  document.getElementById('filter-loc').value='';
-  document.getElementById('filter-date-from').value='';
-  document.getElementById('filter-date-to').value='';
-  applyFilters();
-}
+function doGet(e) {
+  try {
+    var callback = (e && e.parameter && e.parameter.callback) ? e.parameter.callback : null;
+    var sheet  = getSheet();
+    var values = sheet.getDataRange().getValues();
 
-// ═══════════════════════════════════════════════════
-//  VIEW SWITCHING
-// ═══════════════════════════════════════════════════
-function switchView(v){
-  currentView = v;
-  ['entry','consolidated'].forEach(id=>{
-    document.getElementById(id+'-view').style.display = id===v ? (id==='entry'?'grid':'block') : 'none';
-  });
-  document.getElementById('records-view').style.display = 'none';
-  document.getElementById('export-section').style.display = v === 'consolidated' ? 'block' : 'none';
-  document.querySelectorAll('.nav-btn').forEach((b,i)=>{
-    b.classList.toggle('active',['entry','consolidated'][i]===v);
-  });
-}
-
-// ═══════════════════════════════════════════════════
-//  PRODUCT DROPDOWN
-// ═══════════════════════════════════════════════════
-function openDropdown(){
-  if(selectedProduct) return;
-  filterProducts();
-  document.getElementById('product-dropdown').classList.add('open');
-}
-function closeDropdown(){
-  document.getElementById('product-dropdown').classList.remove('open');
-}
-function filterProducts(){
-  const q = document.getElementById('f-product-search').value.toLowerCase();
-  const dd = document.getElementById('product-dropdown');
-  const matches = q ? PRODUCTS.filter(p=>p.code.toLowerCase().includes(q)||p.desc.toLowerCase().includes(q)) : PRODUCTS;
-  if(!matches.length){ dd.innerHTML='<div style="padding:10px 14px;font-size:11px;color:var(--text3)">No products found</div>'; return; }
-  dd.innerHTML = matches.slice(0,60).map(p=>`
-    <div class="dd-item" onclick="selectProduct('${esc(p.code)}')">
-      <span class="dd-code">[${esc(p.code)}]</span>
-      <span class="dd-desc">${esc(p.desc)}</span>
-      <div class="dd-right">
-        ${catBadge(p.cat)}
-        <span class="dd-price">${fmt(p.price)}</span>
-      </div>
-    </div>`).join('');
-}
-function selectProduct(code){
-  selectedProduct = PRODUCTS.find(p=>p.code===code);
-  if(!selectedProduct) return;
-  document.getElementById('f-product-search').value = `[${selectedProduct.code}] ${selectedProduct.desc}`;
-  closeDropdown();
-  document.getElementById('si-cat').textContent = selectedProduct.cat;
-  document.getElementById('si-pkg').textContent = selectedProduct.pkg;
-  document.getElementById('si-wt').textContent = selectedProduct.wt+' KGS';
-  document.getElementById('si-price').textContent = fmt(selectedProduct.price);
-  document.getElementById('product-strip').classList.add('show');
-  updateRevPreview();
-}
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('f-product-search').addEventListener('focus', openDropdown);
-  document.getElementById('f-product-search').addEventListener('click', ()=>{
-    if(selectedProduct){ selectedProduct=null; document.getElementById('f-product-search').value=''; document.getElementById('product-strip').classList.remove('show'); document.getElementById('rev-preview').classList.remove('show'); openDropdown(); }
-  });
-});
-function updateRevPreview(){
-  if(!selectedProduct) return;
-  const qty = parseFloat(document.getElementById('f-qty').value)||0;
-  const rev = qty * selectedProduct.price;
-  document.getElementById('rev-val').textContent = fmt(rev);
-  document.getElementById('rev-preview').classList.toggle('show', rev>0);
-}
-
-// ═══════════════════════════════════════════════════
-//  SUBMIT ENTRY
-// ═══════════════════════════════════════════════════
-async function submitEntry(){
-  const loc = document.getElementById('f-location').value;
-  const date = document.getElementById('f-date').value;
-  const qty = parseFloat(document.getElementById('f-qty').value);
-  const notes = document.getElementById('f-notes').value.trim();
-  if(!loc||!selectedProduct||!qty||!notes){ showError('Please fill in Location, Product, Quantity and Reason for Lost Sale'); return; }
-  if(unlockedLocation !== loc){
-    showError('Please unlock ' + loc + ' with the correct password before submitting.');
-    document.getElementById('f-location').value = loc;
-    onLocationChange();
-    return;
-  }
-  const btn = document.getElementById('submit-btn');
-  btn.disabled=true; btn.textContent='⟳ Saving...';
-  hideError();
-  const payload = {
-    date, location:loc,
-    recordedBy: unlockedName,
-    productCode: selectedProduct.code,
-    description: selectedProduct.desc,
-    category: selectedProduct.cat,
-    packaging: selectedProduct.pkg,
-    weight: selectedProduct.wt,
-    price: selectedProduct.price,
-    qty, revenue: selectedProduct.price*qty, notes
-  };
-  try{
-    // Apps Script POST using no-cors mode
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    });
+    var entries = [];
     
-    // POST succeeded (no-cors never throws unless truly offline)
-    selectedProduct=null;
-    document.getElementById('f-product-search').value='';
-    document.getElementById('f-qty').value='';
-    document.getElementById('f-notes').value='';
-    document.getElementById('product-strip').classList.remove('show');
-    document.getElementById('rev-preview').classList.remove('show');
-    const fb = document.getElementById('save-feedback');
-    fb.textContent = '✅ Successfully Submitted!';
-    fb.classList.add('show');
-    setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully Submitted!'; }, 3000);
-    unlockedLocation = null;
-    unlockedName = '';
-    document.getElementById('f-location').value = '';
-    updateLockBadge();
-    // Small delay then reload to reflect saved entry
-    setTimeout(()=> loadEntries(), 1500);
-  } catch(e){
-    showError('Network error — please check your internet connection and try again.');
-  } finally {
-    btn.disabled=false; btn.textContent='✓ Submit';
+    if (values.length > 1) {
+      var headers = values[0];
+      for (var i = 1; i < values.length; i++) {
+        var row = values[i];
+        var obj = { rowIndex: i + 1 };
+        for (var j = 0; j < headers.length; j++) {
+          obj[headers[j]] = row[j];
+        }
+        entries.push(obj);
+      }
+    }
+
+    var data = { success: true, entries: entries };
+    var json = JSON.stringify(data);
+    
+    // Return JSONP if callback provided, otherwise JSON
+    if (callback) {
+      return ContentService
+        .createTextOutput(callback + "(" + json + ")")
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
+    
+    return ContentService
+      .createTextOutput(json)
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    var json = JSON.stringify({ success: false, error: err.toString() });
+    return ContentService
+      .createTextOutput(json)
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 // ═══════════════════════════════════════════════════
-//  DELETE
+//  POST — append a new row
 // ═══════════════════════════════════════════════════
-async function deleteEntry(rowIndex){
-  if(!confirm('Delete this OOS entry from Google Sheets?')) return;
-  setSyncing(true,'⟳ Deleting...');
-  try{
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({action:'delete',rowIndex})
-    });
-    setTimeout(()=> loadEntries(), 1500);
-  } catch(e){ showError('Delete failed — check internet connection.'); }
-  finally{ setSyncing(false); }
-}
+function doPost(e) {
+  try {
+    var payload = JSON.parse(e.postData.contents);
+    
+    if (payload.action === "delete") {
+      return handleDelete(payload.rowIndex);
+    }
+    
+    return handleAppend(payload);
 
-// ═══════════════════════════════════════════════════
-//  RENDER TABLE
-// ═══════════════════════════════════════════════════
-function renderTable(){
-  const body = document.getElementById('tbl-body');
-  const total = filteredEntries.reduce((s,e)=>s+e.revenue,0);
-  document.getElementById('tbl-grand').textContent = fmt(total);
-  const sorted = [...filteredEntries].sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
-  document.getElementById('rec-title-sub').textContent = `${filteredEntries.length} entries · Lost ${fmt(total)}`;
-  if(!sorted.length){
-    body.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div>No OOS records found.</div>';
-    return;
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-  body.innerHTML = sorted.map(e=>`
-    <div class="tbl-row">
-      <div class="td td-mono td-muted">${esc(e.date)}</div>
-      <div class="td">
-        <div class="td-desc">${esc(e.description)}</div>
-        <div class="td-sub">[${esc(e.productCode)}] · ${esc(e.packaging)}</div>
-        ${e.notes?`<div class="td-note">💬 ${esc(e.notes)}</div>`:''}
-      </div>
-      <div class="td">${catBadge(e.category)}</div>
-      <div class="td td-muted" style="font-size:11px">${esc(e.location)}</div>
-      <div class="td td-mono" style="font-weight:600">${fmtInt(e.qty)}</div>
-      <div class="td td-green">${fmt(e.price)}</div>
-      <div class="td td-red">${fmt(e.revenue)}</div>
-      <div class="td"><button class="del-btn" onclick="deleteEntry(${e.rowIndex})">✕</button></div>
-    </div>`).join('');
 }
 
-// ═══════════════════════════════════════════════════
-//  RENDER CONSOLIDATED
-// ═══════════════════════════════════════════════════
-function renderConsolidated(){
-  const total = filteredEntries.reduce((s,e)=>s+e.revenue,0);
-  const byLoc={}, byCat={};
-  filteredEntries.forEach(e=>{
-    byLoc[e.location]=(byLoc[e.location]||0)+e.revenue;
-    if(!byCat[e.category]) byCat[e.category]={entries:[],total:0};
-    byCat[e.category].entries.push(e);
-    byCat[e.category].total+=e.revenue;
-  });
-  const locs=Object.keys(byLoc), cats=Object.keys(byCat);
-  document.getElementById('sc-entries').textContent=fmtInt(filteredEntries.length);
-  document.getElementById('sc-rev').textContent=fmt(total);
-  document.getElementById('sc-locs').textContent=fmtInt(locs.length);
-  document.getElementById('sc-cats').textContent=fmtInt(cats.length);
+// ── Append a new OOS entry ──
+function handleAppend(data) {
+  try {
+    var sheet = getSheet();
 
-  const locEl=document.getElementById('loc-breakdown');
-  if(!locs.length){ locEl.innerHTML='<div style="color:var(--text3);font-size:12px">No data</div>'; }
-  else locEl.innerHTML=Object.entries(byLoc).sort((a,b)=>b[1]-a[1]).map(([loc,rev])=>`
-    <div class="bar-item">
-      <div class="bar-head"><span>${esc(loc)}</span><span style="font-family:var(--mono);color:var(--red)">${fmt(rev)}</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${total?((rev/total)*100).toFixed(1):0}%"></div></div>
-      <div style="font-size:10px;color:var(--text3);margin-top:3px">${total?((rev/total)*100).toFixed(1):0}% of total</div>
-    </div>`).join('');
+    var row = [
+      new Date().toISOString(),    // Timestamp
+      data.date        || "",      // Date
+      data.location    || "",      // Location
+      data.recordedBy  || "",      // Recorded By
+      data.productCode || "",      // Product Code
+      data.description || "",      // Description
+      data.category    || "",      // Category
+      data.packaging   || "",      // Packaging
+      data.weight      || 0,       // Weight (KGS)
+      data.price       || 0,       // Unit Price (KES)
+      data.qty         || 0,       // Quantity OOS
+      data.revenue     || 0,       // Revenue Lost (KES)
+      data.notes       || ""       // Notes / Reason
+    ];
 
-  const catEl=document.getElementById('cat-breakdown');
-  if(!cats.length){ catEl.innerHTML='<div style="color:var(--text3);font-size:12px">No data</div>'; }
-  else catEl.innerHTML=Object.entries(byCat).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>{
-    const c=CAT_COLORS[cat]||'#6b7280';
-    return `<div class="bar-item">
-      <div class="bar-head">${catBadge(cat)}<span style="font-family:var(--mono);color:${c}">${fmt(d.total)}<span style="color:var(--text3);font-size:10px;margin-left:6px">(${fmtInt(d.entries.length)})</span></span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${total?((d.total/total)*100).toFixed(1):0}%;background:${c}"></div></div>
-    </div>`;}).join('');
+    sheet.appendRow(row);
+    var lastRow = sheet.getLastRow();
 
-  const tablesEl=document.getElementById('cat-tables');
-  if(!cats.length){ tablesEl.innerHTML=''; }
-  else tablesEl.innerHTML=Object.entries(byCat).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>{
-    const c=CAT_COLORS[cat]||'#6b7280';
-    const rows=d.entries.sort((a,b)=>b.revenue-a.revenue).map(e=>`
-      <tr>
-        <td style="font-family:var(--mono);color:var(--text3)">${esc(e.productCode)}</td>
-        <td>${esc(e.description)}</td>
-        <td style="color:var(--text2)">${esc(e.location)}</td>
-        <td style="font-family:var(--mono);font-size:11px;color:var(--text2)">${esc(e.date)}</td>
-        <td style="font-family:var(--mono);font-weight:600;text-align:right">${fmtInt(e.qty)}</td>
-        <td style="font-family:var(--mono);color:var(--text2);text-align:right">${fmt(e.price)}</td>
-        <td style="font-family:var(--mono);font-weight:700;color:var(--red);text-align:right">${fmt(e.revenue)}</td>
-      </tr>`).join('');
-    return `<div class="card con-cat-table">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:10px">${catBadge(cat)}<span style="color:var(--text2);font-size:12px">${fmtInt(d.entries.length)} OOS entries</span></div>
-        <span style="font-family:var(--mono);font-weight:700;font-size:16px;color:${c}">${fmt(d.total)}</span>
-      </div>
-      <div style="overflow-x:auto"><table class="con-tbl">
-        <thead><tr><th>Code</th><th>Description</th><th>Location</th><th>Date</th><th style="text-align:right">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Revenue Lost</th></tr></thead>
-        <tbody>${rows}<tr class="tr-total"><td colspan="6" style="color:var(--text3)">${esc(cat)} TOTAL</td><td style="font-family:var(--mono);color:${c};text-align:right">${fmt(d.total)}</td></tr></tbody>
-      </table></div>
-    </div>`; }).join('');
+    // Alternate row shading
+    if (lastRow % 2 === 0) {
+      sheet.getRange(lastRow, 1, 1, HEADERS.length).setBackground("#f0f7f4");
+    }
 
-  const gt=document.getElementById('grand-total');
-  gt.style.display=filteredEntries.length?'flex':'none';
-  document.getElementById('gt-val').textContent=fmt(total);
-  document.getElementById('gt-sub').textContent=`${fmtInt(filteredEntries.length)} entries · ${fmtInt(locs.length)} location(s) · ${fmtInt(cats.length)} category(ies)`;
-}
+    // Format currency columns
+    sheet.getRange(lastRow, 10).setNumberFormat("KES #,##0.00"); // Unit Price
+    sheet.getRange(lastRow, 12).setNumberFormat("KES #,##0.00"); // Revenue Lost
 
-// ═══════════════════════════════════════════════════
-//  EXPORT + PREVIEW
-// ═══════════════════════════════════════════════════
-let exportScope = 'filtered';
-let pendingDownload = null; // fn to call on confirm
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true, rowIndex: lastRow }))
+      .setMimeType(ContentService.MimeType.JSON);
 
-const EXPORT_META = {
-  all:      { icon:'📊', label:'Full OOS Data',             sub:'All columns — one row per entry' },
-  location: { icon:'📍', label:'Summary by Location',       sub:'Revenue lost per branch' },
-  category: { icon:'🗂️', label:'Summary by Category',       sub:'Revenue lost per product category' },
-  product:  { icon:'📦', label:'Summary by Product',        sub:'Top OOS products ranked by revenue' },
-  date:     { icon:'📅', label:'Summary by Date',           sub:'Daily revenue lost breakdown' },
-  pivot:    { icon:'🔁', label:'Location × Category Pivot', sub:'Cross-tabulation of all branches' },
-};
-
-function previewData(type){
-  const data = getExportData();
-  if(!data.length){ showError('No data to export'); return; }
-
-  let rows, filename;
-  if(type==='all'){
-    rows = buildAllRows(data);
-    filename = `OOS_Full_Data_${today()}.csv`;
-  } else if(type==='location'){
-    rows = buildLocationRows(data);
-    filename = `OOS_By_Location_${today()}.csv`;
-  } else if(type==='category'){
-    rows = buildCategoryRows(data);
-    filename = `OOS_By_Category_${today()}.csv`;
-  } else if(type==='product'){
-    rows = buildProductRows(data);
-    filename = `OOS_By_Product_${today()}.csv`;
-  } else if(type==='date'){
-    rows = buildDateRows(data);
-    filename = `OOS_By_Date_${today()}.csv`;
-  } else if(type==='pivot'){
-    rows = buildPivotRows(data);
-    filename = `OOS_Pivot_${today()}.csv`;
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-
-  const meta = EXPORT_META[type];
-  document.getElementById('preview-title').innerHTML = meta.icon + ' ' + meta.label;
-  document.getElementById('preview-subtitle').textContent = data.length + ' records · ' + meta.sub;
-
-  // Render table
-  const header = rows[0];
-  const body = rows.slice(1);
-  document.getElementById('preview-thead').innerHTML =
-    '<tr>' + header.map(h => `<th>${esc(String(h))}</th>`).join('') + '</tr>';
-
-  const isTotal = (row) => String(row[0]).includes('TOTAL');
-  document.getElementById('preview-tbody').innerHTML = body.map(row =>
-    `<tr>${row.map((cell,i) => {
-      const s = String(cell==null?'':cell);
-      const isMoney = header[i] && String(header[i]).includes('KES');
-      const color = isTotal(row) ? '' : (isMoney && parseFloat(s)>0 ? 'color:var(--red)' : '');
-      return `<td style="${color}font-family:${isMoney||!isNaN(parseFloat(s))&&s!==''?'var(--mono)':'inherit'}">${esc(s)}</td>`;
-    }).join('')}</tr>`
-  ).join('');
-
-  const dataRows = body.filter(r => !isTotal(r)).length;
-  document.getElementById('preview-info').innerHTML =
-    `<strong>${dataRows}</strong> data rows · File: <span style="font-family:var(--mono);color:var(--text3)">${filename}</span>`;
-
-  pendingDownload = () => downloadCSV(filename, rows);
-  document.getElementById('preview-overlay').classList.add('show');
 }
 
-function confirmDownload(){
-  if(pendingDownload) pendingDownload();
-  closePreview();
+// ── Delete a row by its 1-based row index ──
+function handleDelete(rowIndex) {
+  try {
+    var sheet = getSheet();
+
+    if (!rowIndex || rowIndex <= 1) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ success: false, error: "Invalid row index" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    sheet.deleteRow(rowIndex);
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
-
-function closePreview(){
-  document.getElementById('preview-overlay').classList.remove('show');
-  pendingDownload = null;
-}
-
-// Close on backdrop click
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('preview-overlay').addEventListener('click', e=>{
-    if(e.target === document.getElementById('preview-overlay')) closePreview();
-  });
-});
-
-// ── Row builders ──
-function buildAllRows(data){
-  const header = ['Date','Location','Recorded By','Product Code','Description','Category','Packaging','Weight (KGS)','Unit Price (KES)','Quantity OOS','Revenue Lost (KES)','Reason for Lost Sale'];
-  const rows = data.map(e=>[e.date,e.location,e.recordedBy||'',e.productCode,e.description,e.category,e.packaging,e.weight,fmtNum(e.price),e.qty,fmtNum(e.revenue),e.notes]);
-  return [header, ...rows];
-}
-function buildLocationRows(data){
-  const map = {};
-  data.forEach(e=>{ if(!map[e.location]) map[e.location]={entries:0,qty:0,revenue:0}; map[e.location].entries++; map[e.location].qty+=e.qty; map[e.location].revenue+=e.revenue; });
-  const header = ['Location','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue).map(([loc,d])=>[loc,d.entries,d.qty,fmtNum(d.revenue)]);
-  return [header, ...rows, ['TOTAL','','',fmtNum(rows.reduce((s,r)=>s+r[3],0))]];
-}
-function buildCategoryRows(data){
-  const map = {};
-  data.forEach(e=>{ if(!map[e.category]) map[e.category]={entries:0,qty:0,revenue:0}; map[e.category].entries++; map[e.category].qty+=e.qty; map[e.category].revenue+=e.revenue; });
-  const header = ['Category','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue).map(([cat,d])=>[cat,d.entries,d.qty,fmtNum(d.revenue)]);
-  return [header, ...rows, ['TOTAL','','',fmtNum(rows.reduce((s,r)=>s+r[3],0))]];
-}
-function buildProductRows(data){
-  const map = {};
-  data.forEach(e=>{ const k=e.productCode+'||'+e.description; if(!map[k]) map[k]={code:e.productCode,desc:e.description,cat:e.category,pkg:e.packaging,price:e.price,entries:0,qty:0,revenue:0}; map[k].entries++; map[k].qty+=e.qty; map[k].revenue+=e.revenue; });
-  const header = ['Product Code','Description','Category','Packaging','Unit Price (KES)','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue).map(d=>[d.code,d.desc,d.cat,d.pkg,fmtNum(d.price),d.entries,d.qty,fmtNum(d.revenue)]);
-  return [header, ...rows];
-}
-function buildDateRows(data){
-  const map = {};
-  data.forEach(e=>{ if(!map[e.date]) map[e.date]={entries:0,qty:0,revenue:0}; map[e.date].entries++; map[e.date].qty+=e.qty; map[e.date].revenue+=e.revenue; });
-  const header = ['Date','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).map(([date,d])=>[date,d.entries,d.qty,fmtNum(d.revenue)]);
-  return [header, ...rows, ['TOTAL','','',fmtNum(rows.reduce((s,r)=>s+r[3],0))]];
-}
-function buildPivotRows(data){
-  const locs = [...new Set(data.map(e=>e.location))].sort();
-  const cats = [...new Set(data.map(e=>e.category))].sort();
-  const pivot = {};
-  cats.forEach(cat=>{ pivot[cat]={}; locs.forEach(loc=>{ pivot[cat][loc]=0; }); });
-  data.forEach(e=>{ if(pivot[e.category]) pivot[e.category][e.location]=(pivot[e.category][e.location]||0)+e.revenue; });
-  const header = ['Category', ...locs, 'TOTAL'];
-  const rows = cats.map(cat=>{ const locVals=locs.map(loc=>fmtNum(pivot[cat][loc]||0)); return [cat,...locVals,fmtNum(locVals.reduce((s,v)=>s+v,0))]; });
-  const totRow = ['TOTAL',...locs.map(loc=>fmtNum(data.filter(e=>e.location===loc).reduce((s,e)=>s+e.revenue,0))),fmtNum(data.reduce((s,e)=>s+e.revenue,0))];
-  return [header, ...rows, totRow];
-}
-
-function setExportScope(scope){
-  exportScope = scope;
-  document.getElementById('scope-filtered').classList.toggle('active', scope==='filtered');
-  document.getElementById('scope-all').classList.toggle('active', scope==='all');
-  const data = scope==='all' ? allEntries : filteredEntries;
-  document.getElementById('export-scope-note').textContent = `(${data.length} records)`;
-}
-
-function getExportData(){
-  return exportScope === 'all' ? allEntries : filteredEntries;
-}
-
-function downloadCSV(filename, rows){
-  const csv = rows.map(r => r.map(cell => {
-    const s = String(cell==null?'':cell);
-    return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g,'""') + '"' : s;
-  }).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function fmtNum(n){ 
-  const num = parseFloat(n||0).toFixed(2);
-  return new Intl.NumberFormat('en-KE', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(num);
-}
-
-function fmtInt(n) {
-  return new Intl.NumberFormat('en-KE').format(Math.round(n||0));
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ═══════════════════════════════════════════════════
-//  SIDE STATS (entry view)
-// ═══════════════════════════════════════════════════
-function updateSideStats(){
-  const td = today();
-  const todayE = allEntries.filter(e=>e.date===td);
-  document.getElementById('today-count').textContent=fmtInt(todayE.length);
-  document.getElementById('today-rev').textContent=fmt(todayE.reduce((s,e)=>s+e.revenue,0));
-  const byLoc={}, byCat={};
-  allEntries.forEach(e=>{
-    byLoc[e.location]=(byLoc[e.location]||0)+e.revenue;
-    byCat[e.category]=(byCat[e.category]||0)+e.revenue;
-  });
-  const maxLoc=Math.max(...Object.values(byLoc),1);
-  const locEl=document.getElementById('loc-bars');
-  const locSorted=Object.entries(byLoc).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  locEl.innerHTML=locSorted.length?locSorted.map(([l,v])=>`
-    <div class="bar-item">
-      <div class="bar-head"><span style="font-size:11px">${esc(l)}</span><span style="font-family:var(--mono);font-size:11px;color:var(--red)">${fmt(v)}</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${((v/maxLoc)*100).toFixed(1)}%"></div></div>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
-  const catEl=document.getElementById('cat-mini');
-  const catSorted=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  catEl.innerHTML=catSorted.length?catSorted.map(([cat,v])=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:11px">
-      ${catBadge(cat)}<span style="font-family:var(--mono)">${fmt(v)}</span>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
-}
-</script>
-
-<!-- ═══ PREVIEW MODAL ═══ -->
-<div id="preview-overlay">
-  <div id="preview-modal">
-    <div id="preview-header">
-      <div>
-        <div id="preview-title">📄 Preview</div>
-        <div id="preview-subtitle"></div>
-      </div>
-      <button id="preview-close" onclick="closePreview()">✕</button>
-    </div>
-    <div id="preview-table-wrap">
-      <table id="preview-table">
-        <thead id="preview-thead"></thead>
-        <tbody id="preview-tbody"></tbody>
-      </table>
-    </div>
-    <div id="preview-footer">
-      <div id="preview-info"></div>
-      <div style="display:flex;gap:10px">
-        <button id="preview-cancel-btn" onclick="closePreview()">Cancel</button>
-        <button id="preview-download-btn" onclick="confirmDownload()">⬇ Download Excel (CSV)</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ PASSWORD MODAL ═══ -->
-<div id="pwd-overlay">
-  <div id="pwd-modal">
-    <h2>🔐 Location Access</h2>
-    <p>Enter your name and the password for <strong id="pwd-loc-name"></strong> to record OOS data.</p>
-
-    <div class="modal-field">
-      <label class="modal-field-label" for="pwd-name">Your Name *</label>
-      <input type="text" id="pwd-name" placeholder="e.g. Jane Mwangi" autocomplete="name">
-    </div>
-
-    <div class="modal-field">
-      <label class="modal-field-label" for="pwd-input">Location Password *</label>
-      <input type="password" id="pwd-input" placeholder="Enter password...">
-    </div>
-
-    <div id="pwd-error"></div>
-    <button id="pwd-submit" onclick="checkPassword()">Unlock Location</button>
-    <button id="pwd-cancel" onclick="cancelPassword()">Cancel</button>
-  </div>
-</div>
-
-</body>
-</html>
