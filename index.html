@@ -25,7 +25,6 @@
     --sans: 'IBM Plex Sans', sans-serif;
   }
 
-  /* Light theme */
   body.light-theme {
     --bg: #f8faf7;
     --bg2: #f0f3ed;
@@ -53,7 +52,6 @@
                       radial-gradient(ellipse at 80% 100%, rgba(34,197,94,0.04) 0%, transparent 50%);
   }
 
-  /* Light theme background */
   body.light-theme {
     background-image: radial-gradient(ellipse at 20% 0%, rgba(22,163,74,0.03) 0%, transparent 50%),
                       radial-gradient(ellipse at 80% 100%, rgba(22,163,74,0.02) 0%, transparent 50%);
@@ -210,15 +208,72 @@
   .rev-label { color: var(--amber); font-size: 12px; }
   .rev-value { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--amber); }
 
-  /* submit btn */
-  #submit-btn {
+  /* add to cart btn */
+  .btn-group { display: flex; gap: 10px; align-items: center; }
+  #add-to-cart-btn {
     background: var(--green-dim); color: #fff; border: none; border-radius: 8px;
     padding: 11px 26px; font-family: var(--sans); font-weight: 600; font-size: 14px;
-    cursor: pointer; transition: background .15s;
+    cursor: pointer; transition: background .15s; flex: 1;
+  }
+  #add-to-cart-btn:hover:not(:disabled) { background: var(--green); }
+  #add-to-cart-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
+  #cart-clear-btn {
+    background: none; border: 1px solid var(--red-dim); color: var(--red);
+    border-radius: 8px; padding: 10px 14px; font-family: var(--sans); font-size: 12px;
+    cursor: pointer; transition: all .15s;
+  }
+  #cart-clear-btn:hover { background: rgba(248,113,113,0.1); }
+
+  /* Cart section */
+  #cart-section {
+    display: none; background: var(--bg2); border: 1px solid var(--green-dim);
+    border-radius: 12px; padding: 20px; margin-top: 20px;
+    grid-column: 1 / -1;
+  }
+  #cart-section.show { display: block; }
+  .cart-title { font-weight: 700; font-size: 15px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .cart-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px; }
+  .cart-table th {
+    padding: 10px 12px; text-align: left; background: var(--bg3);
+    font-size: 10px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .07em; border-bottom: 1px solid var(--border2);
+  }
+  .cart-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .cart-table tbody tr:hover { background: var(--bg3); }
+  .cart-table tbody tr:last-child { border-bottom: 2px solid var(--border2); }
+  .cart-qty-input {
+    width: 60px; background: var(--bg); border: 1px solid var(--border2);
+    border-radius: 4px; padding: 4px 8px; color: var(--text);
+    font-family: var(--mono); font-size: 12px; text-align: center;
+  }
+  .cart-remove-btn {
+    background: none; border: none; color: var(--text3); cursor: pointer;
+    font-size: 14px; padding: 2px 5px; border-radius: 4px; transition: color .15s;
+  }
+  .cart-remove-btn:hover { color: var(--red); }
+
+  /* Cart summary */
+  .cart-summary {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;
+  }
+  .cart-stat {
+    background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .cart-stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+  .cart-stat-val { font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--green); }
+  .cart-stat-val.red { color: var(--red); }
+
+  /* submit btn */
+  .submit-group { display: flex; gap: 10px; align-items: center; }
+  #submit-btn {
+    background: var(--green-dim); color: #fff; border: none; border-radius: 8px;
+    padding: 12px 32px; font-family: var(--sans); font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: background .15s; flex: 1;
   }
   #submit-btn:hover:not(:disabled) { background: var(--green); }
   #submit-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
-  #save-feedback { font-size: 13px; font-weight: 600; color: var(--green); margin-left: 14px; opacity: 0; transition: opacity .4s; }
+  #save-feedback { font-size: 13px; font-weight: 600; color: var(--green); opacity: 0; transition: opacity .4s; }
   #save-feedback.show { opacity: 1; }
 
   /* ── SIDE STATS ── */
@@ -275,145 +330,6 @@
   .tbl-total-label { font-size: 12px; color: var(--text2); }
   .tbl-total-val { font-family: var(--mono); font-weight: 700; font-size: 15px; color: var(--red); }
 
-  /* ── CONSOLIDATED ── */
-  #consolidated-view { display: none; }
-  .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
-  .sumcard {
-    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
-    padding: 16px 18px; display: flex; justify-content: space-between; align-items: flex-start;
-  }
-  .sumcard-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing:.07em; margin-bottom:6px; }
-  .sumcard-val { font-family: var(--mono); font-size: 22px; font-weight: 600; }
-  .sumcard-icon { font-size: 22px; }
-  .two-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .con-cat-table { margin-bottom: 16px; }
-  .con-cat-head {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 14px; background: var(--bg); border-radius: 6px 6px 0 0;
-    border-bottom: 1px solid var(--border2);
-  }
-  .con-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .con-tbl th {
-    padding: 8px 12px; text-align: left; font-size: 10px; color: var(--text3);
-    font-weight: 600; text-transform: uppercase; letter-spacing:.07em;
-    background: var(--bg); border-bottom: 1px solid var(--border2); white-space: nowrap;
-  }
-  .con-tbl td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
-  .con-tbl tr:hover td { background: var(--bg3); }
-  .con-tbl .tr-total td {
-    border-top: 2px solid var(--border2); background: var(--bg);
-    font-weight: 700; border-bottom: none;
-  }
-  .grand-total {
-    background: #0d1f10; border: 2px solid var(--green-dim); border-radius: 12px;
-    padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;
-    margin-top: 8px;
-  }
-  .gt-label { font-weight: 700; font-size: 16px; color: var(--green); }
-  .gt-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
-  .gt-val { font-family: var(--mono); font-weight: 700; font-size: 30px; color: var(--red); }
-
-  /* ── EXPORT ── */
-  .export-section {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px 24px; margin-bottom: 20px;
-    display: none;
-  }
-  .export-section.show { display: block; }
-  .export-title { font-weight: 700; font-size: 15px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-  .export-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .export-btn {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--bg3); border: 1px solid var(--border2);
-    border-radius: 8px; padding: 13px 16px; cursor: pointer;
-    transition: all .15s; text-align: left; width: 100%;
-  }
-  .export-btn:hover { border-color: #16a34a; background: rgba(34,197,94,0.07); }
-  .export-btn-icon { font-size: 22px; flex-shrink: 0; }
-  .export-btn-label { font-size: 13px; font-weight: 600; color: var(--text); }
-  .export-btn-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
-  .export-options {
-    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-    padding: 12px 0 4px 0; border-top: 1px solid var(--border); margin-top: 14px;
-  }
-  .export-opt-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing:.06em; }
-  .export-scope-btn {
-    padding: 5px 12px; border-radius: 5px; border: 1px solid var(--border2);
-    background: var(--bg); color: var(--text2); font-size: 11px; cursor: pointer;
-    font-family: var(--sans); transition: all .15s;
-  }
-  .export-scope-btn.active { background: var(--green-glow); border-color: var(--green-dim); color: var(--green); font-weight: 600; }
-  @media (max-width: 700px) { .export-grid { grid-template-columns: 1fr; } }
-
-  /* ── PREVIEW MODAL ── */
-  #preview-overlay {
-    display: none; position: fixed; inset: 0; z-index: 998;
-    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
-    align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto;
-  }
-  #preview-overlay.show { display: flex; }
-  #preview-modal {
-    background: var(--bg2); border: 1px solid var(--border2);
-    border-radius: 16px; width: 100%; max-width: 900px;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-    animation: fadein .2s ease; overflow: hidden;
-  }
-  #preview-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 18px 24px; border-bottom: 1px solid var(--border);
-    background: var(--bg3);
-  }
-  #preview-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
-  #preview-subtitle { font-size: 11px; color: var(--text3); margin-top: 3px; font-family: var(--mono); }
-  #preview-close {
-    background: none; border: 1px solid var(--border2); color: var(--text2);
-    border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 15px;
-    transition: all .15s;
-  }
-  #preview-close:hover { border-color: var(--red-dim); color: var(--red); }
-  #preview-table-wrap {
-    overflow-x: auto; max-height: 420px; overflow-y: auto;
-  }
-  #preview-table {
-    width: 100%; border-collapse: collapse; font-size: 12px;
-  }
-  #preview-table thead th {
-    position: sticky; top: 0; background: var(--bg);
-    padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 600;
-    color: var(--text3); text-transform: uppercase; letter-spacing: .06em;
-    border-bottom: 1px solid var(--border2); white-space: nowrap; z-index: 2;
-  }
-  #preview-table tbody td {
-    padding: 8px 12px; border-bottom: 1px solid var(--border);
-    color: var(--text); white-space: nowrap; max-width: 260px;
-    overflow: hidden; text-overflow: ellipsis;
-  }
-  #preview-table tbody tr:hover td { background: var(--bg3); }
-  #preview-table tbody tr:last-child td {
-    background: var(--bg); font-weight: 700; border-top: 2px solid var(--border2);
-    border-bottom: none; color: var(--green);
-  }
-  #preview-footer {
-    padding: 16px 24px; border-top: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center; gap: 12px;
-    background: var(--bg3); flex-wrap: wrap;
-  }
-  #preview-info { font-size: 12px; color: var(--text2); }
-  #preview-info strong { color: var(--text); }
-  #preview-download-btn {
-    background: var(--green-dim); color: #fff; border: none;
-    border-radius: 8px; padding: 10px 22px; font-family: var(--sans);
-    font-weight: 600; font-size: 13px; cursor: pointer; transition: background .15s;
-    display: flex; align-items: center; gap: 8px;
-  }
-  #preview-download-btn:hover { background: var(--green); }
-  #preview-cancel-btn {
-    background: none; border: 1px solid var(--border2); color: var(--text2);
-    border-radius: 8px; padding: 9px 18px; font-family: var(--sans);
-    font-size: 13px; cursor: pointer; transition: all .15s;
-  }
-  #preview-cancel-btn:hover { border-color: var(--text2); color: var(--text); }
-
   /* ── ALERTS ── */
   #error-bar {
     display: none; background: #1a0a0a; border: 1px solid var(--red-dim);
@@ -421,31 +337,17 @@
     font-size: 12px; color: var(--red); align-items: center; justify-content: space-between;
   }
   #error-bar.show { display: flex; }
-  #loading-overlay {
-    display: none; text-align: center; padding: 60px 0; color: var(--text3);
-  }
-  #loading-overlay.show { display: block; }
-  .spinner { font-size: 28px; animation: spin 1s linear infinite; display: inline-block; margin-bottom: 10px; }
-  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-  .empty-state { text-align: center; padding: 60px 0; color: var(--text3); }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; }
-
-  /* syncing indicator */
-  #sync-status { font-size: 11px; color: var(--text3); font-family: var(--mono); }
-  #sync-status.syncing { color: #388bfd; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 900px) {
     #entry-view { grid-template-columns: 1fr; }
-    .summary-grid { grid-template-columns: repeat(2,1fr); }
-    .two-panel { grid-template-columns: 1fr; }
     .two-col, .three-col { grid-template-columns: 1fr; }
+    .cart-summary { grid-template-columns: 1fr; }
   }
   @media (max-width: 600px) {
     #header { padding: 0 14px; flex-wrap: wrap; height: auto; padding: 10px 14px; gap: 8px; }
     .nav-tabs { order: 3; width: 100%; }
     #app { padding: 14px; }
-    .summary-grid { grid-template-columns: 1fr 1fr; }
   }
 
   /* ── PASSWORD MODAL ── */
@@ -464,7 +366,6 @@
   #pwd-modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
   #pwd-modal p  { font-size: 12px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
 
-  /* field label inside modal */
   .modal-field { margin-bottom: 14px; }
   .modal-field-label {
     display: block; font-size: 10px; font-weight: 600; color: var(--text3);
@@ -503,7 +404,6 @@
   }
   #pwd-cancel:hover { border-color: var(--text2); color: var(--text); }
 
-  /* unlocked badge — now shows name */
   .loc-unlocked-badge {
     display: inline-flex; align-items: center; gap: 6px;
     background: var(--green-glow); border: 1px solid var(--green-dim);
@@ -529,7 +429,7 @@
   </div>
   <div class="nav-tabs">
     <button class="nav-btn" onclick="switchView('entry')">📝 Record OOS</button>
-    <button class="nav-btn" onclick="switchView('consolidated')">📊 Dashboard</button>
+    <button class="nav-btn" onclick="switchView('dashboard')">📊 Dashboard</button>
   </div>
   <div class="header-actions">
     <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"><span id="theme-icon">🌙</span> Night</button>
@@ -556,67 +456,10 @@
       <option value="">All Locations</option>
     </select>
     <span class="filter-label" style="margin-left:10px">Period:</span>
-    <input type="date" class="fsel" id="filter-date-from" onchange="applyFilters()" style="color-scheme:dark" placeholder="From">
-    <input type="date" class="fsel" id="filter-date-to" onchange="applyFilters()" style="color-scheme:dark" placeholder="To">
+    <input type="date" class="fsel" id="filter-date-from" onchange="applyFilters()" placeholder="From">
+    <input type="date" class="fsel" id="filter-date-to" onchange="applyFilters()" placeholder="To">
     <button class="clear-btn" onclick="clearFilters()" id="clear-btn" style="display:none">✕ Clear</button>
     <div class="filter-summary" id="filter-summary">Loading...</div>
-  </div>
-
-  <!-- ═══ EXPORT SECTION ═══ -->
-  <div class="export-section" id="export-section">
-    <div class="export-title">📥 Export Data</div>
-
-    <div class="export-options">
-      <span class="export-opt-label">Export scope:</span>
-      <button class="export-scope-btn active" id="scope-filtered" onclick="setExportScope('filtered')">Current View (filtered)</button>
-      <button class="export-scope-btn" id="scope-all" onclick="setExportScope('all')">All Records</button>
-      <span id="export-scope-note" style="font-size:11px;color:var(--text3);margin-left:4px"></span>
-    </div>
-
-    <div class="export-grid" style="margin-top:14px">
-      <button class="export-btn" onclick="previewData('all')">
-        <span class="export-btn-icon">📊</span>
-        <div>
-          <div class="export-btn-label">Full OOS Data</div>
-          <div class="export-btn-sub">All columns — one row per entry</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('location')">
-        <span class="export-btn-icon">📍</span>
-        <div>
-          <div class="export-btn-label">Summary by Location</div>
-          <div class="export-btn-sub">Revenue lost per branch</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('category')">
-        <span class="export-btn-icon">🗂️</span>
-        <div>
-          <div class="export-btn-label">Summary by Category</div>
-          <div class="export-btn-sub">Revenue lost per product category</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('product')">
-        <span class="export-btn-icon">📦</span>
-        <div>
-          <div class="export-btn-label">Summary by Product</div>
-          <div class="export-btn-sub">Top OOS products ranked by revenue</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('date')">
-        <span class="export-btn-icon">📅</span>
-        <div>
-          <div class="export-btn-label">Summary by Date</div>
-          <div class="export-btn-sub">Daily revenue lost breakdown</div>
-        </div>
-      </button>
-      <button class="export-btn" onclick="previewData('pivot')">
-        <span class="export-btn-icon">🔁</span>
-        <div>
-          <div class="export-btn-label">Location × Category Pivot</div>
-          <div class="export-btn-sub">Cross-tabulation of all branches</div>
-        </div>
-      </button>
-    </div>
   </div>
 
   <!-- ═══ ENTRY VIEW ═══ -->
@@ -677,9 +520,9 @@
         <div class="rev-value" id="rev-val">KES 0</div>
       </div>
 
-      <div style="display:flex;align-items:center">
-        <button id="submit-btn" onclick="submitEntry()">✓ Submit</button>
-        <span id="save-feedback">✅ Successfully Submitted!</span>
+      <div class="btn-group">
+        <button id="add-to-cart-btn" onclick="addToCart()">+ Add to Cart</button>
+        <button id="cart-clear-btn" onclick="clearCart()" style="display:none">Clear All</button>
       </div>
     </div>
 
@@ -701,11 +544,47 @@
     </div>
   </div>
 
+  <!-- ═══ CART SECTION ═══ -->
+  <div id="cart-section">
+    <div class="cart-title">🛒 OOS Items to Submit</div>
+    
+    <div class="cart-summary">
+      <div class="cart-stat">
+        <div class="cart-stat-label">Items in Cart</div>
+        <div class="cart-stat-val" id="cart-count">0</div>
+      </div>
+      <div class="cart-stat">
+        <div class="cart-stat-label">Total Revenue Lost</div>
+        <div class="cart-stat-val red" id="cart-total">KES 0</div>
+      </div>
+    </div>
+
+    <table class="cart-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th style="text-align:right">Qty</th>
+          <th style="text-align:right">Unit Price</th>
+          <th style="text-align:right">Revenue Lost</th>
+          <th style="text-align:center">Edit Qty</th>
+          <th style="text-align:center">Remove</th>
+        </tr>
+      </thead>
+      <tbody id="cart-body">
+      </tbody>
+    </table>
+
+    <div style="display:flex;gap:10px;align-items:center">
+      <button id="submit-btn" onclick="submitAllEntries()">✓ Submit All Entries</button>
+      <span id="save-feedback">✅ All entries submitted successfully!</span>
+    </div>
+  </div>
+
   <!-- ═══ RECORDS VIEW ═══ -->
   <div id="records-view">
     <div class="card">
       <div class="card-title">📋 OOS Records <span id="rec-title-sub" style="font-weight:400;font-size:12px;color:var(--text2)"></span></div>
-      <div id="loading-overlay"><div class="spinner">⟳</div><br>Loading from Google Sheets...</div>
       <div id="records-content">
         <div class="tbl-wrap">
           <div class="tbl-head">
@@ -730,58 +609,13 @@
     </div>
   </div>
 
-  <!-- ═══ CONSOLIDATED VIEW ═══ -->
-  <div id="consolidated-view">
-    <div class="summary-grid">
-      <div class="sumcard">
-        <div><div class="sumcard-label">Total OOS Entries</div><div class="sumcard-val" id="sc-entries" style="color:#60a5fa">0</div></div>
-        <div class="sumcard-icon">📦</div>
-      </div>
-      <div class="sumcard">
-        <div><div class="sumcard-label">Revenue Lost</div><div class="sumcard-val" id="sc-rev" style="color:var(--red)">KES 0</div></div>
-        <div class="sumcard-icon">💸</div>
-      </div>
-      <div class="sumcard">
-        <div><div class="sumcard-label">Locations Reporting</div><div class="sumcard-val" id="sc-locs" style="color:var(--green)">0</div></div>
-        <div class="sumcard-icon">📍</div>
-      </div>
-      <div class="sumcard">
-        <div><div class="sumcard-label">Categories Affected</div><div class="sumcard-val" id="sc-cats" style="color:var(--amber)">0</div></div>
-        <div class="sumcard-icon">🗂️</div>
-      </div>
-    </div>
-
-    <div class="two-panel">
-      <div class="card">
-        <div class="card-title">📍 Revenue Lost by Location</div>
-        <div id="loc-breakdown"><div style="color:var(--text3);font-size:12px">No data</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">🗂️ Revenue Lost by Category</div>
-        <div id="cat-breakdown"><div style="color:var(--text3);font-size:12px">No data</div></div>
-      </div>
-    </div>
-
-    <div id="cat-tables"></div>
-
-    <div class="grand-total" id="grand-total" style="display:none">
-      <div>
-        <div class="gt-label">GRAND TOTAL — REVENUE LOST</div>
-        <div class="gt-sub" id="gt-sub"></div>
-      </div>
-      <div class="gt-val" id="gt-val">KES 0</div>
-    </div>
-  </div>
-
 </div><!-- /app -->
 
 <script>
 // ═══════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyEKciAC4IH5L7rXVckOyxz1o5hfYay6u8_c3OxlOHe2wybqLkc6lcAQVN9EaqwsS8Mw/exec";
-// NOTE: Apps Script doGet() must handle ?callback=fnName for JSONP:
-// if(e.parameter.callback){ return ContentService.createTextOutput(e.parameter.callback+'('+JSON.stringify(result)+')').setMimeType(ContentService.MimeType.JAVASCRIPT); }
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzpIPhk-_8OabzzL6AYr4jQLJG_3U5EfSlspwdhL2dbZvqcMHZTL4ePcHMT9nNTnSVsA/exec";
 
 // ═══════════════════════════════════════════════════
 //  PRODUCT DATA
@@ -943,6 +777,7 @@ let selectedProduct = null;
 let currentView = 'entry';
 let unlockedLocation = null;
 let unlockedName = '';
+let cartItems = []; // NEW: Cart for batch entry
 
 // ═══════════════════════════════════════════════════
 //  HELPERS
@@ -950,6 +785,7 @@ let unlockedName = '';
 const fmt = n => new Intl.NumberFormat('en-KE',{style:'currency',currency:'KES',minimumFractionDigits:0}).format(n||0);
 const today = () => new Date().toISOString().split('T')[0];
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtInt = n => new Intl.NumberFormat('en-KE').format(Math.round(n||0));
 function catBadge(cat){
   const c = CAT_COLORS[cat]||'#6b7280';
   return `<span class="cat-badge" style="background:${c}22;color:${c}">${esc(cat)}</span>`;
@@ -960,6 +796,181 @@ function setSyncing(on,msg=''){
   const el=document.getElementById('sync-countdown');
   if(on){ el.textContent=msg||'⟳ syncing...'; el.style.color='#388bfd'; }
   else { el.style.color=''; updateCountdownDisplay(); }
+}
+
+// ═══════════════════════════════════════════════════
+//  CART FUNCTIONS (NEW)
+// ═══════════════════════════════════════════════════
+function addToCart(){
+  const locElem = document.getElementById('f-location');
+  const dateElem = document.getElementById('f-date');
+  const qtyElem = document.getElementById('f-qty');
+  const notesElem = document.getElementById('f-notes');
+  const productSearchElem = document.getElementById('f-product-search');
+  const stripElem = document.getElementById('product-strip');
+  const revElem = document.getElementById('rev-preview');
+  
+  // Safety checks
+  if(!locElem || !dateElem || !qtyElem || !notesElem) {
+    showError('Form elements not found');
+    return;
+  }
+  
+  const loc = locElem.value;
+  const date = dateElem.value;
+  const qty = parseFloat(qtyElem.value);
+  const notes = notesElem.value.trim();
+  
+  if(!loc||!selectedProduct||!qty||!notes){
+    showError('Please fill in Location, Product, Quantity and Reason for Lost Sale');
+    return;
+  }
+  
+  if(unlockedLocation !== loc){
+    showError('Please unlock ' + loc + ' with the correct password before adding to cart.');
+    locElem.value = loc;
+    onLocationChange();
+    return;
+  }
+
+  // Add item to cart
+  cartItems.push({
+    id: Date.now() + Math.random(),
+    date, location: loc,
+    recordedBy: unlockedName,
+    productCode: selectedProduct.code,
+    description: selectedProduct.desc,
+    category: selectedProduct.cat,
+    packaging: selectedProduct.pkg,
+    weight: selectedProduct.wt,
+    price: selectedProduct.price,
+    qty, revenue: selectedProduct.price * qty,
+    notes
+  });
+
+  // Clear form
+  selectedProduct=null;
+  if(productSearchElem) productSearchElem.value='';
+  qtyElem.value='';
+  notesElem.value='';
+  if(stripElem) stripElem.classList.remove('show');
+  if(revElem) revElem.classList.remove('show');
+
+  // Update cart display
+  renderCart();
+  hideError();
+}
+
+function removeFromCart(itemId){
+  cartItems = cartItems.filter(item => item.id !== itemId);
+  renderCart();
+}
+
+function clearCart(){
+  if(!confirm('Clear all items from cart?')) return;
+  cartItems = [];
+  renderCart();
+}
+
+function updateCartItemQty(itemId, newQty){
+  const item = cartItems.find(i => i.id === itemId);
+  if(item){
+    item.qty = newQty;
+    item.revenue = newQty * item.price;
+  }
+  renderCart();
+}
+
+function renderCart(){
+  const cartSection = document.getElementById('cart-section');
+  const cartBody = document.getElementById('cart-body');
+  const cartClearBtn = document.getElementById('cart-clear-btn');
+  
+  // Safety checks
+  if(!cartSection || !cartBody) return;
+  
+  if(cartItems.length === 0){
+    cartSection.classList.remove('show');
+    cartBody.innerHTML = '';
+    if(cartClearBtn) cartClearBtn.style.display = 'none';
+    return;
+  }
+
+  cartSection.classList.add('show');
+  
+  const total = cartItems.reduce((s,item) => s + item.revenue, 0);
+  const countEl = document.getElementById('cart-count');
+  const totalEl = document.getElementById('cart-total');
+  
+  if(countEl) countEl.textContent = fmtInt(cartItems.length);
+  if(totalEl) totalEl.textContent = fmt(total);
+  if(cartClearBtn) cartClearBtn.style.display = 'inline-block';
+
+  cartBody.innerHTML = cartItems.map(item => `
+    <tr>
+      <td><strong>${esc(item.description)}</strong><br><span style="font-size:10px;color:var(--text3)">[${esc(item.productCode)}]</span></td>
+      <td>${catBadge(item.category)}</td>
+      <td style="text-align:right"><input type="number" min="1" value="${item.qty}" class="cart-qty-input" onchange="updateCartItemQty(${item.id}, parseInt(this.value))"></td>
+      <td style="text-align:right;font-family:var(--mono)">${fmt(item.price)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--red);font-weight:700">${fmt(item.revenue)}</td>
+      <td style="text-align:center"><button class="cart-remove-btn" onclick="removeFromCart(${item.id})">✕</button></td>
+      <td></td>
+    </tr>`).join('');
+}
+
+async function submitAllEntries(){
+  if(cartItems.length === 0){ showError('Cart is empty'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = '⟳ Submitting...';
+  hideError();
+
+  try {
+    let successCount = 0;
+    let failureCount = 0;
+
+    // Submit each item
+    for(let item of cartItems){
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(item)
+        });
+        successCount++;
+      } catch(e){
+        failureCount++;
+        console.error('Failed to submit item:', item, e);
+      }
+    }
+
+    // Show result
+    const fb = document.getElementById('save-feedback');
+    if(successCount === cartItems.length){
+      fb.textContent = `✅ All ${successCount} entries submitted successfully!`;
+    } else {
+      fb.textContent = `⚠️ ${successCount} submitted, ${failureCount} failed`;
+    }
+    fb.classList.add('show');
+    
+    setTimeout(() => {
+      fb.classList.remove('show');
+      fb.textContent = '✅ All entries submitted successfully!';
+    }, 4000);
+
+    // Clear cart and reload
+    cartItems = [];
+    renderCart();
+    setTimeout(() => loadEntries(), 1500);
+
+  } catch(e){
+    showError('Network error — check your internet connection.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✓ Submit All Entries';
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -1053,7 +1064,7 @@ function toggleTheme(){
   const body = document.body;
   const toggle = document.getElementById('theme-toggle');
   
-  if(!toggle) return; // Safety check
+  if(!toggle) return;
   
   body.classList.toggle('light-theme');
   const isLight = body.classList.contains('light-theme');
@@ -1079,31 +1090,41 @@ function initTheme(){
 
 window.addEventListener('DOMContentLoaded', ()=>{
   initTheme();
-  document.getElementById('f-date').value = today();
+  
+  const fDateElem = document.getElementById('f-date');
+  if(fDateElem) fDateElem.value = today();
+  
   populateCatFilter();
   loadEntries();
   startAutoSync();
+  
   document.addEventListener('click', e=>{
     if(!e.target.closest('.dd-wrap')) closeDropdown();
   });
 
-  // Allow Tab from name → password field
-  document.getElementById('pwd-name').addEventListener('keydown', e=>{
-    if(e.key==='Enter'){ document.getElementById('pwd-input').focus(); }
-  });
-  document.getElementById('pwd-input').addEventListener('keydown', e=>{
-    if(e.key==='Enter') checkPassword();
-  });
+  const pwdNameElem = document.getElementById('pwd-name');
+  const pwdInputElem = document.getElementById('pwd-input');
+  
+  if(pwdNameElem){
+    pwdNameElem.addEventListener('keydown', e=>{
+      if(e.key==='Enter' && pwdInputElem){ pwdInputElem.focus(); }
+    });
+  }
+  
+  if(pwdInputElem){
+    pwdInputElem.addEventListener('keydown', e=>{
+      if(e.key==='Enter') checkPassword();
+    });
+  }
 });
 
 // ═══════════════════════════════════════════════════
-//  DATA LOAD
+//  DATA LOAD & FILTERING
 // ═══════════════════════════════════════════════════
 function loadEntries(){
   setSyncing(true,'⟳ Loading...');
   hideError();
   
-  // Use JSONP to bypass CORS — this is more reliable with Apps Script
   const cbName = 'oosCallback_' + Date.now();
   const script = document.createElement('script');
   
@@ -1111,8 +1132,6 @@ function loadEntries(){
     cleanup();
     setSyncing(false);
     startAutoSync();
-    console.warn('JSONP timeout - data may still load from sheet');
-    // Don't show error - just silently retry
   }, 10000);
 
   function cleanup(){
@@ -1122,11 +1141,9 @@ function loadEntries(){
   }
 
   window[cbName] = function(data){
-    console.log('✅ JSONP callback received:', data);
     cleanup();
     try {
       if(data && data.success){
-        console.log('✅ Data loaded successfully:', data.entries.length, 'entries');
         allEntries = (data.entries||[]).map(e=>({
           id: e['Timestamp'],
           rowIndex: e.rowIndex,
@@ -1150,40 +1167,29 @@ function loadEntries(){
         setSyncing(false);
         startAutoSync();
       } else {
-        console.error('Response not successful:', data);
         showError(data?.error || 'Failed to load data');
         setSyncing(false);
         startAutoSync();
       }
     } catch(e){
-      console.error('Error processing data:', e);
       showError('Error processing data: ' + e.message);
       setSyncing(false);
       startAutoSync();
     }
   };
 
-  script.onerror = function(){
-    console.warn('Script tag onerror triggered - JSONP may still work despite this');
-    // Don't cleanup yet - callback may still arrive
-    // Just log the issue
-  };
-
   const url = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
-  console.log('📡 Requesting:', url);
   script.src = url;
   script.type = 'text/javascript';
   document.head.appendChild(script);
 }
 
-// ═══════════════════════════════════════════════════
-//  FILTERS
-// ═══════════════════════════════════════════════════
 function populateCatFilter(){
   const sel = document.getElementById('filter-cat');
   const cats = [...new Set(PRODUCTS.map(p=>p.cat))].sort();
   cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
 }
+
 function populateLocFilter(){
   const sel = document.getElementById('filter-loc');
   const current = sel.value;
@@ -1192,6 +1198,7 @@ function populateLocFilter(){
   locs.forEach(l=>{ const o=document.createElement('option'); o.value=l; o.textContent=l; sel.appendChild(o); });
   sel.value = current;
 }
+
 function applyFilters(){
   const cat = document.getElementById('filter-cat').value;
   const loc = document.getElementById('filter-loc').value;
@@ -1210,11 +1217,8 @@ function applyFilters(){
   document.getElementById('filter-summary').innerHTML =
     `<span style="color:var(--text)">${filteredEntries.length}</span> records · Revenue Lost: <span>${fmt(total)}</span>`;
   renderTable();
-  renderConsolidated();
-  // Update export scope note
-  const noteEl = document.getElementById('export-scope-note');
-  if(noteEl){ const d = exportScope==='all'?allEntries:filteredEntries; noteEl.textContent='('+d.length+' records)'; }
 }
+
 function clearFilters(){
   document.getElementById('filter-cat').value='';
   document.getElementById('filter-loc').value='';
@@ -1228,13 +1232,12 @@ function clearFilters(){
 // ═══════════════════════════════════════════════════
 function switchView(v){
   currentView = v;
-  ['entry','consolidated'].forEach(id=>{
-    document.getElementById(id+'-view').style.display = id===v ? (id==='entry'?'grid':'block') : 'none';
+  ['entry','dashboard'].forEach(id=>{
+    document.getElementById(id+'-view').style.display = id===v?'grid':'none';
   });
-  document.getElementById('records-view').style.display = 'none';
-  document.getElementById('export-section').style.display = v === 'consolidated' ? 'block' : 'none';
+  document.getElementById('records-view').style.display = v==='dashboard'?'block':'none';
   document.querySelectorAll('.nav-btn').forEach((b,i)=>{
-    b.classList.toggle('active',['entry','consolidated'][i]===v);
+    b.classList.toggle('active',['entry','dashboard'][i]===v);
   });
 }
 
@@ -1246,9 +1249,11 @@ function openDropdown(){
   filterProducts();
   document.getElementById('product-dropdown').classList.add('open');
 }
+
 function closeDropdown(){
   document.getElementById('product-dropdown').classList.remove('open');
 }
+
 function filterProducts(){
   const q = document.getElementById('f-product-search').value.toLowerCase();
   const dd = document.getElementById('product-dropdown');
@@ -1264,6 +1269,7 @@ function filterProducts(){
       </div>
     </div>`).join('');
 }
+
 function selectProduct(code){
   selectedProduct = PRODUCTS.find(p=>p.code===code);
   if(!selectedProduct) return;
@@ -1276,98 +1282,32 @@ function selectProduct(code){
   document.getElementById('product-strip').classList.add('show');
   updateRevPreview();
 }
+
 document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('f-product-search').addEventListener('focus', openDropdown);
-  document.getElementById('f-product-search').addEventListener('click', ()=>{
-    if(selectedProduct){ selectedProduct=null; document.getElementById('f-product-search').value=''; document.getElementById('product-strip').classList.remove('show'); document.getElementById('rev-preview').classList.remove('show'); openDropdown(); }
-  });
+  const productSearchElem = document.getElementById('f-product-search');
+  
+  if(productSearchElem){
+    productSearchElem.addEventListener('focus', openDropdown);
+    productSearchElem.addEventListener('click', ()=>{
+      if(selectedProduct){ 
+        selectedProduct=null; 
+        productSearchElem.value=''; 
+        const stripElem = document.getElementById('product-strip');
+        const revElem = document.getElementById('rev-preview');
+        if(stripElem) stripElem.classList.remove('show');
+        if(revElem) revElem.classList.remove('show');
+        openDropdown(); 
+      }
+    });
+  }
 });
+
 function updateRevPreview(){
   if(!selectedProduct) return;
   const qty = parseFloat(document.getElementById('f-qty').value)||0;
   const rev = qty * selectedProduct.price;
   document.getElementById('rev-val').textContent = fmt(rev);
   document.getElementById('rev-preview').classList.toggle('show', rev>0);
-}
-
-// ═══════════════════════════════════════════════════
-//  SUBMIT ENTRY
-// ═══════════════════════════════════════════════════
-async function submitEntry(){
-  const loc = document.getElementById('f-location').value;
-  const date = document.getElementById('f-date').value;
-  const qty = parseFloat(document.getElementById('f-qty').value);
-  const notes = document.getElementById('f-notes').value.trim();
-  if(!loc||!selectedProduct||!qty||!notes){ showError('Please fill in Location, Product, Quantity and Reason for Lost Sale'); return; }
-  if(unlockedLocation !== loc){
-    showError('Please unlock ' + loc + ' with the correct password before submitting.');
-    document.getElementById('f-location').value = loc;
-    onLocationChange();
-    return;
-  }
-  const btn = document.getElementById('submit-btn');
-  btn.disabled=true; btn.textContent='⟳ Saving...';
-  hideError();
-  const payload = {
-    date, location:loc,
-    recordedBy: unlockedName,
-    productCode: selectedProduct.code,
-    description: selectedProduct.desc,
-    category: selectedProduct.cat,
-    packaging: selectedProduct.pkg,
-    weight: selectedProduct.wt,
-    price: selectedProduct.price,
-    qty, revenue: selectedProduct.price*qty, notes
-  };
-  try{
-    // Apps Script POST using no-cors mode
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    });
-    
-    // POST succeeded (no-cors never throws unless truly offline)
-    selectedProduct=null;
-    document.getElementById('f-product-search').value='';
-    document.getElementById('f-qty').value='';
-    document.getElementById('f-notes').value='';
-    document.getElementById('product-strip').classList.remove('show');
-    document.getElementById('rev-preview').classList.remove('show');
-    const fb = document.getElementById('save-feedback');
-    fb.textContent = '✅ Successfully Submitted!';
-    fb.classList.add('show');
-    setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully Submitted!'; }, 3000);
-    unlockedLocation = null;
-    unlockedName = '';
-    document.getElementById('f-location').value = '';
-    updateLockBadge();
-    // Small delay then reload to reflect saved entry
-    setTimeout(()=> loadEntries(), 1500);
-  } catch(e){
-    showError('Network error — please check your internet connection and try again.');
-  } finally {
-    btn.disabled=false; btn.textContent='✓ Submit';
-  }
-}
-
-// ═══════════════════════════════════════════════════
-//  DELETE
-// ═══════════════════════════════════════════════════
-async function deleteEntry(rowIndex){
-  if(!confirm('Delete this OOS entry from Google Sheets?')) return;
-  setSyncing(true,'⟳ Deleting...');
-  try{
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({action:'delete',rowIndex})
-    });
-    setTimeout(()=> loadEntries(), 1500);
-  } catch(e){ showError('Delete failed — check internet connection.'); }
-  finally{ setSyncing(false); }
 }
 
 // ═══════════════════════════════════════════════════
@@ -1396,257 +1336,11 @@ function renderTable(){
       <div class="td td-mono" style="font-weight:600">${fmtInt(e.qty)}</div>
       <div class="td td-green">${fmt(e.price)}</div>
       <div class="td td-red">${fmt(e.revenue)}</div>
-      <div class="td"><button class="del-btn" onclick="deleteEntry(${e.rowIndex})">✕</button></div>
     </div>`).join('');
 }
 
 // ═══════════════════════════════════════════════════
-//  RENDER CONSOLIDATED
-// ═══════════════════════════════════════════════════
-function renderConsolidated(){
-  const total = filteredEntries.reduce((s,e)=>s+e.revenue,0);
-  const byLoc={}, byCat={};
-  filteredEntries.forEach(e=>{
-    byLoc[e.location]=(byLoc[e.location]||0)+e.revenue;
-    if(!byCat[e.category]) byCat[e.category]={entries:[],total:0};
-    byCat[e.category].entries.push(e);
-    byCat[e.category].total+=e.revenue;
-  });
-  const locs=Object.keys(byLoc), cats=Object.keys(byCat);
-  document.getElementById('sc-entries').textContent=fmtInt(filteredEntries.length);
-  document.getElementById('sc-rev').textContent=fmt(total);
-  document.getElementById('sc-locs').textContent=fmtInt(locs.length);
-  document.getElementById('sc-cats').textContent=fmtInt(cats.length);
-
-  const locEl=document.getElementById('loc-breakdown');
-  if(!locs.length){ locEl.innerHTML='<div style="color:var(--text3);font-size:12px">No data</div>'; }
-  else locEl.innerHTML=Object.entries(byLoc).sort((a,b)=>b[1]-a[1]).map(([loc,rev])=>`
-    <div class="bar-item">
-      <div class="bar-head"><span>${esc(loc)}</span><span style="font-family:var(--mono);color:var(--red)">${fmt(rev)}</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${total?((rev/total)*100).toFixed(1):0}%"></div></div>
-      <div style="font-size:10px;color:var(--text3);margin-top:3px">${total?((rev/total)*100).toFixed(1):0}% of total</div>
-    </div>`).join('');
-
-  const catEl=document.getElementById('cat-breakdown');
-  if(!cats.length){ catEl.innerHTML='<div style="color:var(--text3);font-size:12px">No data</div>'; }
-  else catEl.innerHTML=Object.entries(byCat).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>{
-    const c=CAT_COLORS[cat]||'#6b7280';
-    return `<div class="bar-item">
-      <div class="bar-head">${catBadge(cat)}<span style="font-family:var(--mono);color:${c}">${fmt(d.total)}<span style="color:var(--text3);font-size:10px;margin-left:6px">(${fmtInt(d.entries.length)})</span></span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${total?((d.total/total)*100).toFixed(1):0}%;background:${c}"></div></div>
-    </div>`;}).join('');
-
-  const tablesEl=document.getElementById('cat-tables');
-  if(!cats.length){ tablesEl.innerHTML=''; }
-  else tablesEl.innerHTML=Object.entries(byCat).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>{
-    const c=CAT_COLORS[cat]||'#6b7280';
-    const rows=d.entries.sort((a,b)=>b.revenue-a.revenue).map(e=>`
-      <tr>
-        <td style="font-family:var(--mono);color:var(--text3)">${esc(e.productCode)}</td>
-        <td>${esc(e.description)}</td>
-        <td style="color:var(--text2)">${esc(e.location)}</td>
-        <td style="font-family:var(--mono);font-size:11px;color:var(--text2)">${esc(e.date)}</td>
-        <td style="font-family:var(--mono);font-weight:600;text-align:right">${fmtInt(e.qty)}</td>
-        <td style="font-family:var(--mono);color:var(--text2);text-align:right">${fmt(e.price)}</td>
-        <td style="font-family:var(--mono);font-weight:700;color:var(--red);text-align:right">${fmt(e.revenue)}</td>
-      </tr>`).join('');
-    return `<div class="card con-cat-table">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:10px">${catBadge(cat)}<span style="color:var(--text2);font-size:12px">${fmtInt(d.entries.length)} OOS entries</span></div>
-        <span style="font-family:var(--mono);font-weight:700;font-size:16px;color:${c}">${fmt(d.total)}</span>
-      </div>
-      <div style="overflow-x:auto"><table class="con-tbl">
-        <thead><tr><th>Code</th><th>Description</th><th>Location</th><th>Date</th><th style="text-align:right">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Revenue Lost</th></tr></thead>
-        <tbody>${rows}<tr class="tr-total"><td colspan="6" style="color:var(--text3)">${esc(cat)} TOTAL</td><td style="font-family:var(--mono);color:${c};text-align:right">${fmt(d.total)}</td></tr></tbody>
-      </table></div>
-    </div>`; }).join('');
-
-  const gt=document.getElementById('grand-total');
-  gt.style.display=filteredEntries.length?'flex':'none';
-  document.getElementById('gt-val').textContent=fmt(total);
-  document.getElementById('gt-sub').textContent=`${fmtInt(filteredEntries.length)} entries · ${fmtInt(locs.length)} location(s) · ${fmtInt(cats.length)} category(ies)`;
-}
-
-// ═══════════════════════════════════════════════════
-//  EXPORT + PREVIEW
-// ═══════════════════════════════════════════════════
-let exportScope = 'filtered';
-let pendingDownload = null; // fn to call on confirm
-
-const EXPORT_META = {
-  all:      { icon:'📊', label:'Full OOS Data',             sub:'All columns — one row per entry' },
-  location: { icon:'📍', label:'Summary by Location',       sub:'Revenue lost per branch' },
-  category: { icon:'🗂️', label:'Summary by Category',       sub:'Revenue lost per product category' },
-  product:  { icon:'📦', label:'Summary by Product',        sub:'Top OOS products ranked by revenue' },
-  date:     { icon:'📅', label:'Summary by Date',           sub:'Daily revenue lost breakdown' },
-  pivot:    { icon:'🔁', label:'Location × Category Pivot', sub:'Cross-tabulation of all branches' },
-};
-
-function previewData(type){
-  const data = getExportData();
-  if(!data.length){ showError('No data to export'); return; }
-
-  let rows, filename;
-  if(type==='all'){
-    rows = buildAllRows(data);
-    filename = `OOS_Full_Data_${today()}.csv`;
-  } else if(type==='location'){
-    rows = buildLocationRows(data);
-    filename = `OOS_By_Location_${today()}.csv`;
-  } else if(type==='category'){
-    rows = buildCategoryRows(data);
-    filename = `OOS_By_Category_${today()}.csv`;
-  } else if(type==='product'){
-    rows = buildProductRows(data);
-    filename = `OOS_By_Product_${today()}.csv`;
-  } else if(type==='date'){
-    rows = buildDateRows(data);
-    filename = `OOS_By_Date_${today()}.csv`;
-  } else if(type==='pivot'){
-    rows = buildPivotRows(data);
-    filename = `OOS_Pivot_${today()}.csv`;
-  }
-
-  const meta = EXPORT_META[type];
-  document.getElementById('preview-title').innerHTML = meta.icon + ' ' + meta.label;
-  document.getElementById('preview-subtitle').textContent = data.length + ' records · ' + meta.sub;
-
-  // Render table
-  const header = rows[0];
-  const body = rows.slice(1);
-  document.getElementById('preview-thead').innerHTML =
-    '<tr>' + header.map(h => `<th>${esc(String(h))}</th>`).join('') + '</tr>';
-
-  const isTotal = (row) => String(row[0]).includes('TOTAL');
-  document.getElementById('preview-tbody').innerHTML = body.map(row =>
-    `<tr>${row.map((cell,i) => {
-      const s = String(cell==null?'':cell);
-      const isMoney = header[i] && String(header[i]).includes('KES');
-      const color = isTotal(row) ? '' : (isMoney && parseFloat(s)>0 ? 'color:var(--red)' : '');
-      return `<td style="${color}font-family:${isMoney||!isNaN(parseFloat(s))&&s!==''?'var(--mono)':'inherit'}">${esc(s)}</td>`;
-    }).join('')}</tr>`
-  ).join('');
-
-  const dataRows = body.filter(r => !isTotal(r)).length;
-  document.getElementById('preview-info').innerHTML =
-    `<strong>${dataRows}</strong> data rows · File: <span style="font-family:var(--mono);color:var(--text3)">${filename}</span>`;
-
-  pendingDownload = () => downloadCSV(filename, rows);
-  document.getElementById('preview-overlay').classList.add('show');
-}
-
-function confirmDownload(){
-  if(pendingDownload) pendingDownload();
-  closePreview();
-}
-
-function closePreview(){
-  document.getElementById('preview-overlay').classList.remove('show');
-  pendingDownload = null;
-}
-
-// Close on backdrop click
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('preview-overlay').addEventListener('click', e=>{
-    if(e.target === document.getElementById('preview-overlay')) closePreview();
-  });
-});
-
-// ── Row builders ──
-function buildAllRows(data){
-  const header = ['Date','Location','Recorded By','Product Code','Description','Category','Packaging','Weight (KGS)','Unit Price (KES)','Quantity OOS','Revenue Lost (KES)','Reason for Lost Sale'];
-  const rows = data.map(e=>[e.date,e.location,e.recordedBy||'',e.productCode,e.description,e.category,e.packaging,e.weight,fmtNum(e.price),e.qty,fmtNum(e.revenue),e.notes]);
-  return [header, ...rows];
-}
-function buildLocationRows(data){
-  const map = {};
-  data.forEach(e=>{ if(!map[e.location]) map[e.location]={entries:0,qty:0,revenue:0}; map[e.location].entries++; map[e.location].qty+=e.qty; map[e.location].revenue+=e.revenue; });
-  const header = ['Location','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue).map(([loc,d])=>[loc,d.entries,d.qty,fmtNum(d.revenue)]);
-  return [header, ...rows, ['TOTAL','','',fmtNum(rows.reduce((s,r)=>s+r[3],0))]];
-}
-function buildCategoryRows(data){
-  const map = {};
-  data.forEach(e=>{ if(!map[e.category]) map[e.category]={entries:0,qty:0,revenue:0}; map[e.category].entries++; map[e.category].qty+=e.qty; map[e.category].revenue+=e.revenue; });
-  const header = ['Category','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue).map(([cat,d])=>[cat,d.entries,d.qty,fmtNum(d.revenue)]);
-  return [header, ...rows, ['TOTAL','','',fmtNum(rows.reduce((s,r)=>s+r[3],0))]];
-}
-function buildProductRows(data){
-  const map = {};
-  data.forEach(e=>{ const k=e.productCode+'||'+e.description; if(!map[k]) map[k]={code:e.productCode,desc:e.description,cat:e.category,pkg:e.packaging,price:e.price,entries:0,qty:0,revenue:0}; map[k].entries++; map[k].qty+=e.qty; map[k].revenue+=e.revenue; });
-  const header = ['Product Code','Description','Category','Packaging','Unit Price (KES)','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue).map(d=>[d.code,d.desc,d.cat,d.pkg,fmtNum(d.price),d.entries,d.qty,fmtNum(d.revenue)]);
-  return [header, ...rows];
-}
-function buildDateRows(data){
-  const map = {};
-  data.forEach(e=>{ if(!map[e.date]) map[e.date]={entries:0,qty:0,revenue:0}; map[e.date].entries++; map[e.date].qty+=e.qty; map[e.date].revenue+=e.revenue; });
-  const header = ['Date','OOS Entries','Total Qty OOS','Revenue Lost (KES)'];
-  const rows = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).map(([date,d])=>[date,d.entries,d.qty,fmtNum(d.revenue)]);
-  return [header, ...rows, ['TOTAL','','',fmtNum(rows.reduce((s,r)=>s+r[3],0))]];
-}
-function buildPivotRows(data){
-  const locs = [...new Set(data.map(e=>e.location))].sort();
-  const cats = [...new Set(data.map(e=>e.category))].sort();
-  const pivot = {};
-  cats.forEach(cat=>{ pivot[cat]={}; locs.forEach(loc=>{ pivot[cat][loc]=0; }); });
-  data.forEach(e=>{ if(pivot[e.category]) pivot[e.category][e.location]=(pivot[e.category][e.location]||0)+e.revenue; });
-  const header = ['Category', ...locs, 'TOTAL'];
-  const rows = cats.map(cat=>{ const locVals=locs.map(loc=>fmtNum(pivot[cat][loc]||0)); return [cat,...locVals,fmtNum(locVals.reduce((s,v)=>s+v,0))]; });
-  const totRow = ['TOTAL',...locs.map(loc=>fmtNum(data.filter(e=>e.location===loc).reduce((s,e)=>s+e.revenue,0))),fmtNum(data.reduce((s,e)=>s+e.revenue,0))];
-  return [header, ...rows, totRow];
-}
-
-function setExportScope(scope){
-  exportScope = scope;
-  document.getElementById('scope-filtered').classList.toggle('active', scope==='filtered');
-  document.getElementById('scope-all').classList.toggle('active', scope==='all');
-  const data = scope==='all' ? allEntries : filteredEntries;
-  document.getElementById('export-scope-note').textContent = `(${data.length} records)`;
-}
-
-function getExportData(){
-  return exportScope === 'all' ? allEntries : filteredEntries;
-}
-
-function downloadCSV(filename, rows){
-  const csv = rows.map(r => r.map(cell => {
-    const s = String(cell==null?'':cell);
-    return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g,'""') + '"' : s;
-  }).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function fmtNum(n){ 
-  const num = parseFloat(n||0).toFixed(2);
-  return new Intl.NumberFormat('en-KE', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(num);
-}
-
-function fmtInt(n) {
-  return new Intl.NumberFormat('en-KE').format(Math.round(n||0));
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ═══════════════════════════════════════════════════
-//  SIDE STATS (entry view)
+//  SIDE STATS
 // ═══════════════════════════════════════════════════
 function updateSideStats(){
   const td = today();
@@ -1674,32 +1368,6 @@ function updateSideStats(){
     </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
 }
 </script>
-
-<!-- ═══ PREVIEW MODAL ═══ -->
-<div id="preview-overlay">
-  <div id="preview-modal">
-    <div id="preview-header">
-      <div>
-        <div id="preview-title">📄 Preview</div>
-        <div id="preview-subtitle"></div>
-      </div>
-      <button id="preview-close" onclick="closePreview()">✕</button>
-    </div>
-    <div id="preview-table-wrap">
-      <table id="preview-table">
-        <thead id="preview-thead"></thead>
-        <tbody id="preview-tbody"></tbody>
-      </table>
-    </div>
-    <div id="preview-footer">
-      <div id="preview-info"></div>
-      <div style="display:flex;gap:10px">
-        <button id="preview-cancel-btn" onclick="closePreview()">Cancel</button>
-        <button id="preview-download-btn" onclick="confirmDownload()">⬇ Download Excel (CSV)</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ PASSWORD MODAL ═══ -->
 <div id="pwd-overlay">
