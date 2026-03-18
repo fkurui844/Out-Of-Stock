@@ -779,7 +779,7 @@
 // ═══════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8BCA254lhhHa-IrqtZ3G5Vp8RsBrfTva67B6inCLjOedlr4l6f1nedfdywE4642uqqw/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCMphwSNAxCSKs0g-nO90QhjlAzWe_8Q6MFAsNhn1IhpWquWyx31bQRMrk77QYIjucPw/exec";
 // NOTE: Apps Script doGet() must handle ?callback=fnName for JSONP:
 // if(e.parameter.callback){ return ContentService.createTextOutput(e.parameter.callback+'('+JSON.stringify(result)+')').setMimeType(ContentService.MimeType.JAVASCRIPT); }
 
@@ -1106,12 +1106,16 @@ function loadEntries(){
   // Use JSONP to bypass CORS — this is more reliable with Apps Script
   const cbName = 'oosCallback_' + Date.now();
   const script = document.createElement('script');
+  const url = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
+  
+  console.log('Loading data from:', url);
   
   const timeout = setTimeout(()=>{
     cleanup();
     setSyncing(false);
     startAutoSync();
-    showError('Request timed out — check your internet connection.');
+    console.error('Request timeout');
+    showError('Request timed out. Check: 1) Internet working 2) Apps Script URL is correct 3) Deployment has "Anyone" access 4) Code deployed successfully');
   }, 15000);
 
   function cleanup(){
@@ -1121,9 +1125,11 @@ function loadEntries(){
   }
 
   window[cbName] = function(data){
+    console.log('Callback received:', data);
     cleanup();
     try {
       if(data && data.success){
+        console.log('Data loaded successfully:', data.entries.length, 'entries');
         allEntries = (data.entries||[]).map(e=>({
           id: e['Timestamp'],
           rowIndex: e.rowIndex,
@@ -1147,11 +1153,13 @@ function loadEntries(){
         setSyncing(false);
         startAutoSync();
       } else {
+        console.error('Response not successful:', data);
         showError(data?.error || 'Failed to load data');
         setSyncing(false);
         startAutoSync();
       }
     } catch(e){
+      console.error('Error processing data:', e);
       showError('Error processing data: ' + e.message);
       setSyncing(false);
       startAutoSync();
@@ -1159,13 +1167,15 @@ function loadEntries(){
   };
 
   script.onerror = function(){
+    console.error('Script load error - URL may be invalid or deployment not accessible');
     cleanup();
     setSyncing(false);
     startAutoSync();
-    showError('Cannot reach server. Make sure: 1) Internet is working, 2) Apps Script deployment URL is correct, 3) Apps Script is deployed as Web app with "Anyone" access');
+    showError('Cannot load script. Verify: 1) URL is correct 2) Apps Script is deployed as Web app with "Anyone" access 3) Check browser console for details');
   };
 
-  script.src = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
+  script.src = url;
+  script.type = 'text/javascript';
   document.head.appendChild(script);
 }
 
