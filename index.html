@@ -779,7 +779,7 @@
 // ═══════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjcBy_SU5kkBjYczzfIW9ZyPXWEy61E9Ae_V0i3bHLXbEahNAv7Atbw8LAJlItQDeUtg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLeMx6kfOvjWCXSvgE6rKYavZSJcvOpHuBeJB1dXwTgGTjNmGuQ8lGLb4RhPS9Oahm/exec";
 // NOTE: Apps Script doGet() must handle ?callback=fnName for JSONP:
 // if(e.parameter.callback){ return ContentService.createTextOutput(e.parameter.callback+'('+JSON.stringify(result)+')').setMimeType(ContentService.MimeType.JAVASCRIPT); }
 
@@ -787,109 +787,120 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjcBy_SU5kkBjY
 //  PRODUCT DATA
 // ═══════════════════════════════════════════════════
 const PRODUCTS = [
-  {code:"20",desc:"GOLD CROWN TFA 1/2LT 1x 12",pkg:"Cartons",wt:6,price:636,cat:"TFA"},
-  {code:"21",desc:"KCC FRESH TFA 1x 12 x 1/2 lt",pkg:"Cartons",wt:6,price:624,cat:"TFA"},
-  {code:"83",desc:"TAIFA TFA 1*12*500 ML",pkg:"Cartons",wt:6,price:612,cat:"TFA"},
-  {code:"29",desc:"TAIFA TFA 1*24*250 ML",pkg:"Cartons",wt:6,price:678.48,cat:"TFA"},
-  {code:"23",desc:"GOLD CROWN TCA1 2DCL 1x 21",pkg:"Cartons",wt:4.2,price:525,cat:"TCA"},
-  {code:"27",desc:"KCC FRESH TCA1 2DL 1x 21",pkg:"Cartons",wt:4.2,price:504,cat:"TCA"},
-  {code:"12",desc:"TAIFA TCA DCL 1*21*200 ML",pkg:"Cartons",wt:4.2,price:525,cat:"TCA"},
-  {code:"28",desc:"KCC SCHOOL TCA1 2DL 1x 21",pkg:"Cartons",wt:4.2,price:860,cat:"TCA"},
-  {code:"24",desc:"ASEPTIC POUCH 18*500ML G/C",pkg:"Cartons",wt:6,price:612,cat:"ESL"},
-  {code:"30",desc:"ESL 450 ML",pkg:"Cartons",wt:5.4,price:540,cat:"ESL"},
-  {code:"26a",desc:"ESL GOLD CROWN 200 ML",pkg:"Cartons",wt:4.2,price:512,cat:"ESL"},
+  {code:"20",desc:"GOLD CROWN TFA 1/2LT 1x 12",pkg:"Cartons",wt:6.0,price:636.0,cat:"TFA"},
+  {code:"21",desc:"KCC FRESH TFA 1x 12 x 1/2 lt",pkg:"Cartons",wt:6.0,price:624.0,cat:"TFA"},
+  {code:"83",desc:"TAIFA TFA 1*12*500 ML",pkg:"Cartons",wt:6.0,price:612.0,cat:"FRESH MILK"},
+  {code:"29",desc:"TAIFA TFA 1*24*250 ML",pkg:"Cartons",wt:6.0,price:678.48,cat:"FRESH MILK"},
+  {code:"23",desc:"GOLD CROWN TCA1 2DCL 1x 21",pkg:"Cartons",wt:4.2,price:525.0,cat:"TCA"},
+  {code:"27",desc:"KCC FRESH TCA1 2DL 1x 21",pkg:"Cartons",wt:4.2,price:504.0,cat:"TCA"},
+  {code:"12",desc:"TAIFA TCA DCL 1*21*200 ML",pkg:"Cartons",wt:4.2,price:525.0,cat:"TCA"},
+  {code:"28",desc:"KCC SCHOOL TCA1 2DL 1x 21",pkg:"Cartons",wt:4.2,price:860.0,cat:"TCA"},
+  {code:"24",desc:"ASEPTIC POUCH 18*500ML G/C",pkg:"Cartons",wt:6.0,price:612.0,cat:"ESL"},
+  {code:"30",desc:"esl 450 ml",pkg:"Cartons",wt:5.4,price:540.0,cat:"ESL"},
+  {code:"26a",desc:"ESL GOLD GROWN 200 ML",pkg:"Cartons",wt:4.2,price:512.0,cat:"ESL"},
   {code:"13",desc:"TAIFA ESL -200 ML",pkg:"Cartons",wt:4.2,price:445.2,cat:"ESL"},
-  {code:"18",desc:"TBA G/C 1*12*1 LTR LACTOSE FREE",pkg:"Packs",wt:12,price:1920,cat:"TBA"},
-  {code:"17",desc:"LACTOSE FREE 12*500ML",pkg:"Cartons",wt:6,price:900,cat:"TBA"},
-  {code:"71",desc:"TBA GC 1LT",pkg:"Cartons",wt:4,price:1644,cat:"TBA"},
-  {code:"73C",desc:"UHT FULL CREAM 1L",pkg:"Cartons",wt:4,price:458,cat:"TBA"},
-  {code:"73B",desc:"UHT FULL CREAM WITH CUPS 1L",pkg:"Cartons",wt:12,price:1308,cat:"TBA"},
-  {code:"81",desc:"UHT FULL CREAM 500ML",pkg:"Cartons",wt:6,price:732,cat:"TBA"},
-  {code:"500",desc:"Gold Crown Purified Water 1*24*300ML",pkg:"Trays",wt:7.2,price:456,cat:"WATER"},
-  {code:"501",desc:"Gold Crown Purified Water 1*24*500ML",pkg:"Trays",wt:12,price:576,cat:"WATER"},
-  {code:"502",desc:"Gold Crown Purified Water 1*12*1L",pkg:"Trays",wt:12,price:528,cat:"WATER"},
-  {code:"503",desc:"Gold Crown Purified Water 1*12*1.5LTR",pkg:"Trays",wt:18,price:768,cat:"WATER"},
-  {code:"88",desc:"PLAIN MALA (1x16) 1/2 (TR)",pkg:"PCS",wt:0.5,price:85,cat:"MALA"},
-  {code:"110",desc:"MALA TR-1LITRE",pkg:"PCS",wt:0.5,price:165,cat:"MALA"},
-  {code:"69",desc:"MALA 1L BOTTLE",pkg:"PCS",wt:1,price:165,cat:"MALA"},
-  {code:"63",desc:"PLAIN MALA 1/2 LT BOTTLE",pkg:"PCS",wt:0.5,price:85,cat:"MALA"},
-  {code:"65",desc:"12*500 ML SLEEVED MALA BOTTLE",pkg:"Trays",wt:6,price:956.28,cat:"MALA"},
-  {code:"60",desc:"BOTTLED MALA (1*12*250ML) SLEEVE",pkg:"Trays",wt:3,price:561.6,cat:"MALA"},
-  {code:"15",desc:"SWEETENED MALA -500 ML",pkg:"Trays",wt:6,price:1072.92,cat:"MALA"},
-  {code:"10",desc:"SWEETENED MALA 1L",pkg:"PCS",wt:1,price:175,cat:"MALA"},
-  {code:"14",desc:"SWEETENED MALA -250 ML",pkg:"Trays",wt:3,price:564.6,cat:"MALA"},
-  {code:"134",desc:"500ML FILPAK MALA",pkg:"Crates",wt:0.5,price:1260,cat:"MALA"},
-  {code:"135",desc:"MALA 200ML POUCH",pkg:"Crates",wt:0.2,price:630,cat:"MALA"},
-  {code:"9",desc:"SWEETEND MALA POUCH",pkg:"Crates",wt:0.5,price:1350,cat:"MALA"},
-  {code:"200",desc:"VANILLA YOGHURT 0.25 LT CUPS",pkg:"Trays",wt:3,price:696,cat:"YOGHURT"},
-  {code:"201",desc:"VANILLA YOGHURT 0.25 LT CUPS",pkg:"Trays",wt:3,price:696,cat:"YOGHURT"},
-  {code:"202",desc:"VANILLA YOGHURT 0.5 LT CUPS",pkg:"Trays",wt:6,price:647.28,cat:"YOGHURT"},
-  {code:"203",desc:"STRAWBERRY YOGHURT 0.15LT CUPS",pkg:"Trays",wt:3,price:696,cat:"YOGHURT"},
-  {code:"36",desc:"VANILLA CUP 100 ML",pkg:"Trays",wt:1.2,price:200,cat:"YOGHURT"},
-  {code:"204",desc:"STRAWBERRY YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3,price:696,cat:"YOGHURT"},
-  {code:"205",desc:"STRAWBERRY YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6,price:647.28,cat:"YOGHURT"},
-  {code:"216",desc:"COCONUT YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3,price:696,cat:"YOGHURT"},
-  {code:"217",desc:"COCONUT YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6,price:647.28,cat:"YOGHURT"},
-  {code:"219",desc:"NATURAL YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3,price:756,cat:"YOGHURT"},
-  {code:"220",desc:"NATURAL YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6,price:647.28,cat:"YOGHURT"},
-  {code:"210",desc:"PINEAPPLE YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3,price:696,cat:"YOGHURT"},
-  {code:"211",desc:"PINEAPPLE YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6,price:647.28,cat:"YOGHURT"},
-  {code:"40",desc:"KCC VANILLA YOGHURT (1x16) 1/2LT (TR)",pkg:"Trays",wt:8,price:1612.16,cat:"YOGHURT"},
-  {code:"41",desc:"KCC STRAWBERRY YOGHURT (1x16) 1/2LT (TR)",pkg:"Trays",wt:8,price:1612.16,cat:"YOGHURT"},
-  {code:"121",desc:"TCA 1*21*200ML STRAWBERRY SHAKE",pkg:"Trays",wt:4.2,price:777,cat:"SHAKES"},
-  {code:"120",desc:"TCA 1*21*200ML CHOCOLATE SHAKE",pkg:"Trays",wt:4.2,price:777,cat:"SHAKES"},
-  {code:"122",desc:"TCA 1*21*200ML VANILLA SHAKE",pkg:"Trays",wt:4.2,price:777,cat:"SHAKES"},
-  {code:"75",desc:"STRAWBERRY 1*24*250 ML SHAKES",pkg:"Cartons",wt:6,price:1440,cat:"SHAKES"},
-  {code:"79",desc:"VANILLA 1*24*250 ML SHAKES",pkg:"Cartons",wt:6,price:1440,cat:"SHAKES"},
-  {code:"77",desc:"CHOCOLATE 1*24*250 ML SHAKES",pkg:"Cartons",wt:6,price:1440,cat:"SHAKES"},
-  {code:"432",desc:"RINDLESS CHEDDAR 150gms*90",pkg:"Cartons",wt:0.15,price:280,cat:"CHEESE"},
-  {code:"430",desc:"RINDLESS CHEDDAR 250gms",pkg:"Cartons",wt:0.25,price:450,cat:"CHEESE"},
-  {code:"433",desc:"RINDLESS CHEDDAR 500 gms",pkg:"Cartons",wt:0.5,price:785,cat:"CHEESE"},
-  {code:"436",desc:"RINDLESS CHEDDAR 1 KG",pkg:"Cartons",wt:1,price:1345,cat:"CHEESE"},
-  {code:"600",desc:"SALTED BUTTER TUBS 1*18*0.5KG",pkg:"Cartons",wt:9,price:16516.62,cat:"BUTTER"},
-  {code:"601",desc:"SALTED BUTTER TUBS 1*24*0.25KG",pkg:"Cartons",wt:6,price:12945.6,cat:"BUTTER"},
-  {code:"602",desc:"UNSALTED BUTTER TUBS 1*18*0.5KG",pkg:"Cartons",wt:9,price:16516.62,cat:"BUTTER"},
-  {code:"603",desc:"UNSALTED BUTTER TUBS 1*24*0.25KG",pkg:"Cartons",wt:6,price:12945.6,cat:"BUTTER"},
-  {code:"604",desc:"SALTED BUTTER 1*20*0.5KG",pkg:"Cartons",wt:10,price:18351.8,cat:"BUTTER"},
-  {code:"605",desc:"SALTED BUTTER 1*40*0.25KG",pkg:"Cartons",wt:10,price:21576,cat:"BUTTER"},
-  {code:"646",desc:"UNSALTED BUTTER 1*20*0.5KG",pkg:"Cartons",wt:10,price:18351.8,cat:"BUTTER"},
-  {code:"709",desc:"SALTED MINI BUTTER 1x100x10 GMS x 12",pkg:"Cartons",wt:1.2,price:32532,cat:"BUTTER"},
+  {code:"26",desc:"ESL ASEPTIC POUCH 200 ML G/C 1*24*200ML",pkg:"Cartons",wt:4.800000000000001,price:512.4000000000001,cat:"ESL"},
+  {code:"18",desc:"TBA G/C 1*12*1 LTR LACTOSE FREE",pkg:"Packs",wt:12.0,price:1920.0,cat:"LACTOSE"},
+  {code:"17",desc:"LACTOSE FREE 12*500ML",pkg:"Cartons",wt:6.0,price:900.0,cat:"LACTOSE"},
+  {code:"71",desc:"TBA GC 1LT",pkg:"Cartons",wt:4.0,price:1644.0,cat:"UHT"},
+  {code:"73C",desc:"UHT FULL CREAM 1L",pkg:"Cartons",wt:4.0,price:458.0,cat:"UHT"},
+  {code:"73B",desc:"UHT FULL CREAM WITH CUPS 1L",pkg:"Cartons",wt:12.0,price:1308.0,cat:"UHT"},
+  {code:"81",desc:"UHT FULL CREAM 500ML",pkg:"Cartons",wt:6.0,price:732.0,cat:"UHT"},
+  {code:"82",desc:"KCC UHT FULL CREAM 1X24X250 ML SLIM",pkg:"Cartons",wt:6.0,price:816.0,cat:"UHT"},
+  {code:"73",desc:"KCC UHT FULL CREAM 1X12X1 LTR",pkg:"Cartons",wt:12.0,price:1644.0,cat:"UHT"},
+  {code:"500",desc:"Gold Crown Purified Drinking Water 1*24*300ML Bottle",pkg:"Trays",wt:7.199999999999999,price:456.0,cat:"WATER"},
+  {code:"501",desc:"Gold Crown Purified Drinking Water 1*24*500ML Bottle",pkg:"Trays",wt:12.0,price:576.0,cat:"WATER"},
+  {code:"502",desc:"Gold Crown Purified Drinking Water 1*12*1L Bottle",pkg:"Trays",wt:12.0,price:528.0,cat:"WATER"},
+  {code:"503",desc:"Gold Crown Purified Drinking Water 1*12*1.5LTR Bottle",pkg:"Trays",wt:18.0,price:768.0,cat:"WATER"},
+  {code:"88",desc:"PLAIN MALA (1x16) 1/2 (TR)",pkg:"PCS",wt:0.5,price:85.0,cat:"MALA"},
+  {code:"110",desc:"MALA TR-1LITRE",pkg:"PCS",wt:0.5,price:165.0,cat:"MALA"},
+  {code:"69",desc:"MALA 1L BOTTLE",pkg:"PCS",wt:1.0,price:165.0,cat:"MALA"},
+  {code:"63",desc:"PLAIN MALA 1/2 LT BOTTLE",pkg:"PCS",wt:0.5,price:85.0,cat:"MALA"},
+  {code:"65",desc:"12*500 ML SLEEVED MALA BOTTLE",pkg:"Trays",wt:6.0,price:956.28,cat:"MALA"},
+  {code:"60",desc:"BOTTLED MALA(1*12*250ML) SLEEVE",pkg:"Trays",wt:3.0,price:561.5999999999999,cat:"MALA"},
+  {code:"15",desc:"SWEETENED MALA -500 ML",pkg:"Trays",wt:6.0,price:1072.92,cat:"MALA"},
+  {code:"10",desc:"SWEETENED MALA 1L",pkg:"PCS",wt:1.0,price:175.0,cat:"MALA"},
+  {code:"14",desc:"SWEETENED MALA -250 ML",pkg:"Trays",wt:3.0,price:564.5999999999999,cat:"MALA"},
+  {code:"134",desc:"500ML FILPAK MALA",pkg:"Crates",wt:0.5,price:1260.0,cat:"MALA"},
+  {code:"135",desc:"MALA 200ML POUCH",pkg:"Crates",wt:0.2,price:630.0,cat:"MALA"},
+  {code:"9",desc:"SWEETEND MALA POUCH",pkg:"Crates",wt:0.5,price:1350.0,cat:"MALA"},
+  {code:"200",desc:"VANNILA YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:1.7999999999999998,price:540.0,cat:"YOGHURT"},
+  {code:"201",desc:"VANNILA YOGHURT 0.25 LT CUPS",pkg:"Trays",wt:3.0,price:696.0,cat:"YOGHURT"},
+  {code:"202",desc:"VANNILA YOGHURT 0.5 LT CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
+  {code:"36",desc:"VANILLA CUP 100 ML",pkg:"Trays",wt:1.2,price:200.0,cat:"YOGHURT"},
+  {code:"203",desc:"STRAW BERRY YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:1.7999999999999998,price:540.0,cat:"YOGHURT"},
+  {code:"204",desc:"STRAW BERRY YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3.0,price:696.0,cat:"YOGHURT"},
+  {code:"205",desc:"STRAW BERRY YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
+  {code:"206",desc:"MANGO YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:1.7999999999999998,price:540.0,cat:"YOGHURT"},
+  {code:"207",desc:"MANGO YOGHURT 0.25LT  CUPS",pkg:"Trays",wt:1.7999999999999998,price:696.0,cat:"YOGHURT"},
+  {code:"208",desc:"MANGO YOGHURT 0.5LT  CUPS",pkg:"Trays",wt:3.0,price:647.28,cat:"YOGHURT"},
+  {code:"209",desc:"PINEAPPLE YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:3.0,price:540.0,cat:"YOGHURT"},
+  {code:"215",desc:"COCONUT YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:3.0,price:540.0,cat:"YOGHURT"},
+  {code:"216",desc:"COCONUT YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3.0,price:696.0,cat:"YOGHURT"},
+  {code:"217",desc:"COCONUT YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
+  {code:"218",desc:"NATURAL YOGHURT 0.15 LT CUPS",pkg:"Trays",wt:1.5,price:540.0,cat:"YOGHURT"},
+  {code:"219",desc:"NATURAL YOGHURT 0.25LT CUPS",pkg:"Trays",wt:3.0,price:756.0,cat:"YOGHURT"},
+  {code:"220",desc:"NATURAL YOGHURT 0.5LT CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
+  {code:"210",desc:"PINEAPPLE YOGHURT 0.25LT  CUPS",pkg:"Trays",wt:3.0,price:696.0,cat:"YOGHURT"},
+  {code:"211",desc:"PINEAPPLE YOGHURT 0.5LT  CUPS",pkg:"Trays",wt:6.0,price:647.28,cat:"YOGHURT"},
+  {code:"40",desc:"KCC VANILLA YOGHURT (1x16) 1/2LT (TR)",pkg:"Trays",wt:8.0,price:1612.16,cat:"YOGHURT"},
+  {code:"41",desc:"KCC STRAWBERRY YOGHURT (1x16) 1/2LT (TR)",pkg:"Trays",wt:8.0,price:1612.16,cat:"YOGHURT"},
+  {code:"121",desc:"TCA 1*21*200ML STRAWBERRY MILK SHAKE",pkg:"Trays",wt:4.2,price:777.0,cat:"SHAKES"},
+  {code:"120",desc:"TCA 1*21*200ML CHOCOLATE MILK SHAKE",pkg:"Trays",wt:4.2,price:777.0,cat:"SHAKES"},
+  {code:"122",desc:"TCA 1*21*200ML VANILLA MILK SHAKE",pkg:"Trays",wt:4.2,price:777.0,cat:"SHAKES"},
+  {code:"75",desc:"STRAWBERRY FLAVOUR 1*24*250 ML SHAKES",pkg:"Cartons",wt:6.0,price:1440.0,cat:"SHAKES"},
+  {code:"79",desc:"VANILLA FLAVOUR 1*24*250 ML SHAKES",pkg:"Cartons",wt:6.0,price:1440.0,cat:"SHAKES"},
+  {code:"77",desc:"CHOCOLATE FLAVOUR 1*24*250 ML SHAKES",pkg:"Cartons",wt:6.0,price:1440.0,cat:"SHAKES"},
+  {code:"432",desc:"RINDLESS CHEDDAR 150gms*90",pkg:"Cartons",wt:0.15,price:280.0,cat:"CHEESE"},
+  {code:"430",desc:"RINDLESS CHEDDAR 250gms",pkg:"Cartons",wt:0.25,price:450.0,cat:"CHEESE"},
+  {code:"433",desc:"RINDLESS CHEDDAR 500 gms",pkg:"Cartons",wt:0.5,price:785.0,cat:"CHEESE"},
+  {code:"436",desc:"RINDLESS CHEDDAR 1 KG",pkg:"Cartons",wt:1.0,price:1345.0,cat:"CHEESE"},
+  {code:"600",desc:"SALTED BUTTER TUBS 1*18* 0.5KG",pkg:"Cartons",wt:9.0,price:16516.62,cat:"BUTTER"},
+  {code:"601",desc:"SALTED BUTTER TUBS 1*24* 0.25KG",pkg:"Cartons",wt:6.0,price:12945.599999999999,cat:"BUTTER"},
+  {code:"602",desc:"UNSALTED BUTTER TUBS 1*18* 0.5KG",pkg:"Cartons",wt:9.0,price:16516.62,cat:"BUTTER"},
+  {code:"603",desc:"UNSALTED BUTTER TUBS 1*24* 0.25KG",pkg:"Cartons",wt:6.0,price:12945.599999999999,cat:"BUTTER"},
+  {code:"604",desc:"SALTED BUTTER 1*20*0.5KG",pkg:"Cartons",wt:10.0,price:18351.8,cat:"BUTTER"},
+  {code:"605",desc:"SALTED BUTTER 1*40*0.25KG",pkg:"Cartons",wt:10.0,price:21576.0,cat:"BUTTER"},
+  {code:"646",desc:"UNSALTED BUTTER 1*20* 0.5KG",pkg:"Cartons",wt:10.0,price:18351.8,cat:"BUTTER"},
+  {code:"709",desc:"SALTED MINI BUTTER 1x100x10 GMS x 12",pkg:"Cartons",wt:1.2,price:32532.0,cat:"BUTTER"},
   {code:"606",desc:"SALTED MINI BUTTER TUB 1x24x8 GMS x 12",pkg:"Cartons",wt:2.3,price:7807.68,cat:"BUTTER"},
-  {code:"757",desc:"BULK UNSALTED BUTTER 10 KGS",pkg:"Cartons",wt:10,price:19400,cat:"BUTTER"},
-  {code:"758",desc:"BULK SALTED BUTTER 10 KGS",pkg:"Cartons",wt:10,price:19400,cat:"BUTTER"},
-  {code:"1036",desc:"DRIED POWDER 1*12*400 GRMS",pkg:"BAGS",wt:4.8,price:6408,cat:"POWDER"},
-  {code:"1037",desc:"DRIED MILK POWDER 1*12*900 GRMS",pkg:"Bags",wt:10.8,price:14652,cat:"POWDER"},
-  {code:"1038",desc:"DRIED POWDER 1*6*2.50 KG TIN",pkg:"Bags",wt:15,price:17670,cat:"POWDER"},
-  {code:"1031",desc:"DRIED WHOLE MILK POWDER 1x25 KG BAG",pkg:"Bags",wt:25,price:22000,cat:"POWDER"},
-  {code:"1021",desc:"DRIED SKIMMED MILK POWDER 1x25 KG BAG",pkg:"Bags",wt:25,price:21000,cat:"POWDER"},
-  {code:"885",desc:"SUPERFINE GHEE 20 x 1/2KG TINS",pkg:"Cartons",wt:10,price:9440,cat:"GHEE"},
-  {code:"882",desc:"SUPERFINE GHEE 12 x 1KG TINS",pkg:"Cartons",wt:12,price:10284,cat:"GHEE"},
-  {code:"876",desc:"SUPERFINE GHEE 6 x 3KG TINS",pkg:"Cartons",wt:18,price:12327,cat:"GHEE"},
-  {code:"877",desc:"SUPERFINE GHEE 6 x 2KG TINS",pkg:"Cartons",wt:12,price:8574,cat:"GHEE"},
-  {code:"851",desc:"SUPERFINE GHEE 1 x 18KG PLASTIC",pkg:"Buckets",wt:18,price:17280,cat:"GHEE"},
-  {code:"58",desc:"GOLD CROWN 1X16X1LT (TR)",pkg:"PCS",wt:1,price:115,cat:"FRESH MILK"},
-  {code:"GCS",desc:"GOLD CROWN STANDARD 1X16X1LT (TR)",pkg:"PCS",wt:1,price:115,cat:"FRESH MILK"},
-  {code:"68",desc:"GOLD CROWN 1X16X500ML (TR)",pkg:"PCS",wt:0.5,price:65,cat:"FRESH MILK"},
-  {code:"70",desc:"KCC FRESH MILK 1X16X500ML (TR)",pkg:"Crates",wt:8,price:956.16,cat:"FRESH MILK"},
-  {code:"55",desc:"GOLD CROWN FILPAK 1X18X500ML POUCH",pkg:"Crates",wt:9,price:936,cat:"FRESH MILK"},
-  {code:"59",desc:"GOLD CROWN FILPAK 1X45X200ML POUCH",pkg:"Crates",wt:9,price:945,cat:"FRESH MILK"},
-  {code:"84",desc:"KCC FRESH FILPAK 1X18X500ML POUCH",pkg:"Crates",wt:9,price:936,cat:"FRESH MILK"},
-  {code:"86",desc:"KCC FRESH FILPAK 1X45X200ML POUCH",pkg:"Crates",wt:9,price:900,cat:"FRESH MILK"},
-  {code:"85",desc:"TAIFA FRESH FILPAK 1X18X500ML POUCH",pkg:"Crates",wt:9,price:900,cat:"FRESH MILK"},
-  {code:"54",desc:"TAIFA FRESH FILPAK 1X45X200ML POUCH",pkg:"Crates",wt:9,price:360,cat:"FRESH MILK"},
-  {code:"97",desc:"KCC FRESH MILK 500ML BOTTLE",pkg:"PCS",wt:0.5,price:70,cat:"FRESH MILK"},
-  {code:"98",desc:"GOLD CROWN FRESH MILK 500ML BOTTLE",pkg:"PCS",wt:0.5,price:70,cat:"FRESH MILK"},
-  {code:"100",desc:"GOLD CROWN FRESH MILK 1X35X1LT BOTTLE",pkg:"PCS",wt:1,price:130,cat:"FRESH MILK"},
-  {code:"101",desc:"GOLD CROWN FRESH MILK 1X18X2LT BOTTLE",pkg:"PCS",wt:2,price:250,cat:"FRESH MILK"},
-  {code:"102",desc:"GOLD CROWN FRESH MILK 1X10X3LT BOTTLE",pkg:"PCS",wt:3,price:390,cat:"FRESH MILK"},
-  {code:"103",desc:"GOLD CROWN STANDARD 1X35X1LT BOTTLE",pkg:"PCS",wt:1,price:130,cat:"FRESH MILK"},
-  {code:"104",desc:"GOLD CROWN STANDARD 1X18X2LT BOTTLE",pkg:"PCS",wt:2,price:250,cat:"FRESH MILK"},
-  {code:"105",desc:"GOLD CROWN STANDARD 1X10X3LT BOTTLE",pkg:"PCS",wt:3,price:390,cat:"FRESH MILK"},
-  {code:"106",desc:"GOLD CROWN LOWFAT 1X18X2LT BOTTLE",pkg:"PCS",wt:2,price:250,cat:"FRESH MILK"},
-  {code:"107",desc:"GOLD CROWN LOWFAT 1X10X3LT BOTTLE",pkg:"PCS",wt:3,price:390,cat:"FRESH MILK"},
-  {code:"108",desc:"GOLD CROWN FRESH MILK 5 LITRE BOTTLE",pkg:"PCS",wt:5,price:580,cat:"FRESH MILK"},
-  {code:"51",desc:"BULK FRESH MILK 50 LITRE CAN",pkg:"PCS",wt:50,price:4500,cat:"FRESH MILK"},
-  {code:"50",desc:"BULK FRESH MILK 20L PACK",pkg:"PCS",wt:20,price:2000,cat:"FRESH MILK"},
+  {code:"756",desc:"BULK BUTTER UNSALTED 25 KGS",pkg:"Cartons",wt:25.0,price:44010.0,cat:"BUTTER"},
+  {code:"757",desc:"BULK UNSALTED BUTTER 10 KGS",pkg:"Cartons",wt:10.0,price:19400.0,cat:"BUTTER"},
+  {code:"758",desc:"BULK SALTED BUTTER 10 KGS",pkg:"Cartons",wt:10.0,price:19400.0,cat:"BUTTER"},
+  {code:"1036",desc:"DRIED POWDER 1*12*400 GRMS",pkg:"BAGS",wt:4.8,price:6408.0,cat:"POWDER"},
+  {code:"1037",desc:"DRIED MILK POWDER 1*12*900 GRMS",pkg:"Bags",wt:10.8,price:14652.0,cat:"POWDER"},
+  {code:"1038",desc:"DRIED POWDER 1*6*2.50 KG TIN",pkg:"Bags",wt:15.0,price:17670.0,cat:"POWDER"},
+  {code:"1031",desc:"DRIED WHOLE MILK POWDER 1 x 25 KG BAG",pkg:"Bags",wt:25.0,price:22000.0,cat:"POWDER"},
+  {code:"1033",desc:"DRIED WHOLE MILK POWDER 1KG x 6 TINS",pkg:"Bags",wt:6.0,price:5439.0,cat:"POWDER"},
+  {code:"1034",desc:"DRIED WHOLE MILK POWDER 2KG x 6 TINS",pkg:"Bags",wt:12.0,price:10671.0,cat:"POWDER"},
+  {code:"1035",desc:"DRIED WHOLE MILK POWDER 1/2 KG X 20 TINS",pkg:"Bags",wt:10.0,price:9320.0,cat:"POWDER"},
+  {code:"1021",desc:"DRIED SKIMMED MILK POWDER 1 x 25 KG BAG",pkg:"Bags",wt:25.0,price:21000.0,cat:"POWDER"},
+  {code:"885",desc:"SUPERFINE GHEE 20 x 1/2KG TINS",pkg:"Cartons",wt:10.0,price:9440.0,cat:"GHEE"},
+  {code:"882",desc:"SUPERFINE GHEE 12 x 1KG TINS",pkg:"Cartons",wt:12.0,price:10284.0,cat:"GHEE"},
+  {code:"876",desc:"SUPERFINE GHEE 6 x 3KG TINS",pkg:"Cartons",wt:18.0,price:12327.0,cat:"GHEE"},
+  {code:"877",desc:"SUPERFINE GHEE 6 x 2KG TINS",pkg:"Cartons",wt:12.0,price:8574.0,cat:"GHEE"},
+  {code:"851",desc:"SUPERFINE GHEE 1 x 18KG PLASTIC",pkg:"Buckets",wt:18.0,price:17280.0,cat:"GHEE"},
+  {code:"68",desc:"GOLD CROWN 1X16X500ML (TR)",pkg:"PCS",wt:0.5,price:65.0,cat:"FRESH MILK"},
+  {code:"70",desc:"KCC FRESH MILK 1X16X500ML (TR)",pkg:"Crates",wt:8.0,price:956.16,cat:"FRESH MILK"},
+  {code:"55",desc:"GOLD CROWN FILPAK 1X18X500ML POUCH",pkg:"Crates",wt:9.0,price:936.0,cat:"FRESH MILK"},
+  {code:"59",desc:"GOLD CROWN FILPAK 1X45X200ML POUCH",pkg:"Crates",wt:9.0,price:945.0,cat:"FRESH MILK"},
+  {code:"84",desc:"KCC FRESH FILPAK 1X18X500ML POUCH",pkg:"Crates",wt:9.0,price:936.0,cat:"FRESH MILK"},
+  {code:"86",desc:"KCC FRESH FILPAK 1X45X200ML POUCH",pkg:"Crates",wt:9.0,price:900.0,cat:"FRESH MILK"},
+  {code:"85",desc:"TAIFA FRESH FILPAK 1X18X500ML POUCH",pkg:"Crates",wt:9.0,price:900.0,cat:"FRESH MILK"},
+  {code:"54",desc:"TAIFA FRESH FILPAK 1X45X200ML POUCH",pkg:"Crates",wt:9.0,price:360.0,cat:"FRESH MILK"},
+  {code:"97",desc:"KCC FRESH MILK 500ML BOTTLE",pkg:"PCS",wt:0.5,price:70.0,cat:"FRESH MILK"},
+  {code:"98",desc:"GOLD CROWN FRESH MILK  500ML BOTTLE",pkg:"PCS",wt:0.5,price:70.0,cat:"FRESH MILK"},
+  {code:"100",desc:"GOLD CROWN FRESH MILK 1X35X1LT BOTTLE",pkg:"PCS",wt:1.0,price:130.0,cat:"FRESH MILK"},
+  {code:"101",desc:"GOLD CROWN FRESH MILK 1X18X2LT BOTTLE",pkg:"PCS",wt:2.0,price:250.0,cat:"FRESH MILK"},
+  {code:"102",desc:"GOLD CROWN FRESH MILK 1X10X3LT BOTTLE",pkg:"PCS",wt:3.0,price:390.0,cat:"FRESH MILK"},
+  {code:"103",desc:"GOLD CROWN STANDARD 1X35X1LT BOTTLE",pkg:"PCS",wt:1.0,price:130.0,cat:"FRESH MILK"},
+  {code:"104",desc:"GOLD CROWN STANDARD 1X18X2LT BOTTLE",pkg:"PCS",wt:2.0,price:250.0,cat:"FRESH MILK"},
+  {code:"105",desc:"GOLD CROWN STANDARD 1X10X3LT BOTTLE",pkg:"PCS",wt:3.0,price:390.0,cat:"FRESH MILK"},
+  {code:"106",desc:"GOLD CROWN LOWFAT 1X18X2LT BOTTLE",pkg:"PCS",wt:2.0,price:250.0,cat:"FRESH MILK"},
+  {code:"107",desc:"GOLD CROWN LOWFAT 1X10X3LT BOTTLE",pkg:"PCS",wt:3.0,price:390.0,cat:"FRESH MILK"},
+  {code:"108",desc:"GOLD CROWN FRESH MILK 5 LITRE BOTTLE",pkg:"PCS",wt:5.0,price:580.0,cat:"FRESH MILK"},
+  {code:"51",desc:"BULK FRESH MILK 50 LITRE CAN",pkg:"PCS",wt:50.0,price:4500.0,cat:"FRESH MILK"},
+  {code:"50",desc:"BULK FRESH MILK 20L PACK",pkg:"PCS",wt:20.0,price:2000.0,cat:"FRESH MILK"}
 ];
 
 const CAT_COLORS = {
@@ -1080,9 +1091,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
 function loadEntries(){
   setSyncing(true,'⟳ Loading...');
   hideError();
-  // Use JSONP — works around CORS entirely for GET requests to Apps Script
+  
+  // Use JSONP to bypass CORS — this is more reliable with Apps Script
   const cbName = 'oosCallback_' + Date.now();
   const script = document.createElement('script');
+  
   const timeout = setTimeout(()=>{
     cleanup();
     setSyncing(false);
@@ -1098,8 +1111,8 @@ function loadEntries(){
 
   window[cbName] = function(data){
     cleanup();
-    try{
-      if(data.success){
+    try {
+      if(data && data.success){
         allEntries = (data.entries||[]).map(e=>({
           id: e['Timestamp'],
           rowIndex: e.rowIndex,
@@ -1115,16 +1128,20 @@ function loadEntries(){
           revenue: parseFloat(e['Revenue Lost (KES)'])||0,
           notes: e['Notes']||'',
           timestamp: e['Timestamp']||'',
+          recordedBy: e['Recorded By']||''
         }));
         populateLocFilter();
         applyFilters();
         updateSideStats();
+        setSyncing(false);
+        startAutoSync();
       } else {
-        showError(data.error||'Failed to load data');
+        showError(data?.error || 'Failed to load data');
+        setSyncing(false);
+        startAutoSync();
       }
     } catch(e){
       showError('Error processing data: ' + e.message);
-    } finally {
       setSyncing(false);
       startAutoSync();
     }
@@ -1134,7 +1151,7 @@ function loadEntries(){
     cleanup();
     setSyncing(false);
     startAutoSync();
-    showError('Cannot reach server — check your internet connection.');
+    showError('Cannot reach server. Make sure: 1) Internet is working, 2) Apps Script deployment URL is correct, 3) Apps Script is deployed as Web app with "Anyone" access');
   };
 
   script.src = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
@@ -1285,13 +1302,14 @@ async function submitEntry(){
     qty, revenue: selectedProduct.price*qty, notes
   };
   try{
-    // Apps Script POST: send no-cors (no response body readable), then confirm via JSONP reload
+    // Apps Script POST using no-cors mode
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: {'Content-Type': 'text/plain'},
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload)
     });
+    
     // POST succeeded (no-cors never throws unless truly offline)
     selectedProduct=null;
     document.getElementById('f-product-search').value='';
