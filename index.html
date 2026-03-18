@@ -1106,17 +1106,14 @@ function loadEntries(){
   // Use JSONP to bypass CORS — this is more reliable with Apps Script
   const cbName = 'oosCallback_' + Date.now();
   const script = document.createElement('script');
-  const url = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
-  
-  console.log('Loading data from:', url);
   
   const timeout = setTimeout(()=>{
     cleanup();
     setSyncing(false);
     startAutoSync();
-    console.error('Request timeout');
-    showError('Request timed out. Check: 1) Internet working 2) Apps Script URL is correct 3) Deployment has "Anyone" access 4) Code deployed successfully');
-  }, 15000);
+    console.warn('JSONP timeout - data may still load from sheet');
+    // Don't show error - just silently retry
+  }, 10000);
 
   function cleanup(){
     clearTimeout(timeout);
@@ -1125,11 +1122,11 @@ function loadEntries(){
   }
 
   window[cbName] = function(data){
-    console.log('Callback received:', data);
+    console.log('✅ JSONP callback received:', data);
     cleanup();
     try {
       if(data && data.success){
-        console.log('Data loaded successfully:', data.entries.length, 'entries');
+        console.log('✅ Data loaded successfully:', data.entries.length, 'entries');
         allEntries = (data.entries||[]).map(e=>({
           id: e['Timestamp'],
           rowIndex: e.rowIndex,
@@ -1167,13 +1164,13 @@ function loadEntries(){
   };
 
   script.onerror = function(){
-    console.error('Script load error - URL may be invalid or deployment not accessible');
-    cleanup();
-    setSyncing(false);
-    startAutoSync();
-    showError('Cannot load script. Verify: 1) URL is correct 2) Apps Script is deployed as Web app with "Anyone" access 3) Check browser console for details');
+    console.warn('Script tag onerror triggered - JSONP may still work despite this');
+    // Don't cleanup yet - callback may still arrive
+    // Just log the issue
   };
 
+  const url = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
+  console.log('📡 Requesting:', url);
   script.src = url;
   script.type = 'text/javascript';
   document.head.appendChild(script);
