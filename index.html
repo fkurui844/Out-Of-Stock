@@ -167,6 +167,86 @@
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .three-col { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; }
 
+  /* ── REMARKS ANALYSIS ── */
+  #remarks-analysis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .analysis-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .analysis-card-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .remarks-tag {
+    display: inline-block;
+    background: var(--green-glow);
+    border: 1px solid var(--green-dim);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin: 4px 4px 4px 0;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--green);
+    max-width: fit-content;
+  }
+  .remarks-tag.supplier { background: rgba(96, 165, 250, 0.12); border-color: #3b82f6; color: #3b82f6; }
+  .remarks-tag.demand { background: rgba(168, 85, 247, 0.12); border-color: #a855f7; color: #a855f7; }
+  .remarks-tag.logistics { background: rgba(249, 115, 22, 0.12); border-color: #f97316; color: #f97316; }
+  .remarks-tag.operational { background: rgba(240, 113, 120, 0.12); border-color: #f07178; color: #f07178; }
+  .remarks-list {
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .remark-item {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .remark-item strong { color: var(--text); }
+  .remark-item .remark-cause { color: var(--green); font-weight: 500; }
+  .cause-category {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border2);
+    font-size: 12px;
+  }
+  .cause-category:last-child { border-bottom: none; }
+  .cause-name { color: var(--text2); }
+  .cause-count {
+    background: var(--green-glow);
+    color: var(--green);
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: var(--mono);
+  }
+  .cause-percentage {
+    color: var(--text3);
+    font-size: 10px;
+    margin-left: 6px;
+  }
+
   /* product dropdown */
   .dd-wrap { position: relative; }
   #product-dropdown {
@@ -616,6 +696,18 @@
           <div class="export-btn-sub">Cross-tabulation of all branches</div>
         </div>
       </button>
+    </div>
+  </div>
+
+  <!-- ═══ REMARKS ANALYSIS SECTION ═══ -->
+  <div id="remarks-analysis">
+    <div class="analysis-card">
+      <div class="analysis-card-title">📝 Root Causes Frequency</div>
+      <div id="cause-frequency"></div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-title">💬 Recent Team Remarks</div>
+      <div class="remarks-list" id="recent-remarks"></div>
     </div>
   </div>
 
@@ -1211,6 +1303,7 @@ function applyFilters(){
     `<span style="color:var(--text)">${filteredEntries.length}</span> records · Revenue Lost: <span>${fmt(total)}</span>`;
   renderTable();
   renderConsolidated();
+  updateRemarksAnalysis();
   // Update export scope note
   const noteEl = document.getElementById('export-scope-note');
   if(noteEl){ const d = exportScope==='all'?allEntries:filteredEntries; noteEl.textContent='('+d.length+' records)'; }
@@ -1233,6 +1326,7 @@ function switchView(v){
   });
   document.getElementById('records-view').style.display = 'none';
   document.getElementById('export-section').style.display = v === 'consolidated' ? 'block' : 'none';
+  document.getElementById('remarks-analysis').style.display = v === 'consolidated' ? 'grid' : 'none';
   document.querySelectorAll('.nav-btn').forEach((b,i)=>{
     b.classList.toggle('active',['entry','consolidated'][i]===v);
   });
@@ -1672,6 +1766,96 @@ function updateSideStats(){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:11px">
       ${catBadge(cat)}<span style="font-family:var(--mono)">${fmt(v)}</span>
     </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
+  
+  // Update remarks analysis
+  updateRemarksAnalysis();
+}
+
+// ═══════════════════════════════════════════════════
+//  REMARKS & ROOT CAUSE ANALYSIS
+// ═══════════════════════════════════════════════════
+function updateRemarksAnalysis(){
+  const data = filteredEntries.length > 0 ? filteredEntries : allEntries;
+  
+  // Extract and categorize root causes from remarks
+  const causesMap = {};
+  const rootCauseKeywords = {
+    'supplier': ['supplier', 'vendor', 'distributor', 'delivery delayed', 'delayed delivery', 'stock delayed', 'pending stock'],
+    'demand': ['high demand', 'demand', 'unexpected sales', 'high sales', 'promotion', 'low inventory'],
+    'logistics': ['transport', 'shipping', 'delivery', 'logistics', 'warehouse', 'stock transfer', 'movement'],
+    'operational': ['system', 'manual', 'miscounted', 'error', 'miscount', 'process', 'staff', 'human error', 'documentation']
+  };
+  
+  data.forEach(e => {
+    if(!e.notes || e.notes.trim() === '') return;
+    const note = e.notes.toLowerCase();
+    let categorized = false;
+    
+    for(const [cause, keywords] of Object.entries(rootCauseKeywords)){
+      if(keywords.some(kw => note.includes(kw))){
+        causesMap[cause] = (causesMap[cause] || 0) + 1;
+        categorized = true;
+        break;
+      }
+    }
+    
+    if(!categorized){
+      causesMap['other'] = (causesMap['other'] || 0) + 1;
+    }
+  });
+  
+  // Render cause frequency
+  const totalEntries = Object.values(causesMap).reduce((a,b) => a+b, 0);
+  const causeSorted = Object.entries(causesMap).sort((a,b) => b[1] - a[1]);
+  const causeFreqEl = document.getElementById('cause-frequency');
+  
+  if(causeSorted.length === 0){
+    causeFreqEl.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px">No remarks data available</div>';
+  } else {
+    causeFreqEl.innerHTML = causeSorted.map(([cause, count]) => {
+      const pct = ((count/totalEntries)*100).toFixed(1);
+      const icons = {
+        'supplier': '📦',
+        'demand': '📈',
+        'logistics': '🚚',
+        'operational': '⚙️',
+        'other': '❓'
+      };
+      return `
+        <div class="cause-category">
+          <span class="cause-name">${icons[cause] || '•'} ${cause.charAt(0).toUpperCase() + cause.slice(1)}</span>
+          <div style="display:flex;align-items:center;gap:4px">
+            <span class="cause-count">${count}</span>
+            <span class="cause-percentage">${pct}%</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+  
+  // Render recent remarks
+  const remarksEl = document.getElementById('recent-remarks');
+  const remarksWithNotes = data.filter(e => e.notes && e.notes.trim() !== '').slice(-8).reverse();
+  
+  if(remarksWithNotes.length === 0){
+    remarksEl.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:10px">No remarks recorded yet</div>';
+  } else {
+    remarksEl.innerHTML = remarksWithNotes.map(e => {
+      let cause = 'unknown';
+      const note = e.notes.toLowerCase();
+      for(const [c, keywords] of Object.entries(rootCauseKeywords)){
+        if(keywords.some(kw => note.includes(kw))){
+          cause = c;
+          break;
+        }
+      }
+      return `
+        <div class="remark-item">
+          <strong>${esc(e.location)}</strong> — ${esc(e.description || e.productCode)}
+          <div style="margin-top:4px;color:var(--text3);font-size:11px">"${esc(e.notes)}"</div>
+          <div style="margin-top:4px"><span class="remarks-tag ${cause}">${cause}</span></div>
+        </div>`;
+    }).join('');
+  }
 }
 </script>
 
