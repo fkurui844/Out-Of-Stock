@@ -719,7 +719,7 @@
   </div>
 
   <!-- Filter bar -->
-  <div id="filter-bar">
+  <div id="filter-bar" style="display:none">
     <span class="filter-label">Filters:</span>
     <select class="fsel" id="filter-cat" onchange="applyFilters()">
       <option value="">All Categories</option>
@@ -1528,6 +1528,7 @@ function switchView(v){
   document.getElementById('records-view').style.display = 'none';
   document.getElementById('export-section').style.display = v === 'consolidated' ? 'block' : 'none';
   document.getElementById('remarks-analysis').style.display = v === 'consolidated' ? 'grid' : 'none';
+  document.getElementById('filter-bar').style.display = v === 'consolidated' ? 'flex' : 'none';
   document.querySelectorAll('.nav-btn').forEach((b,i)=>{
     b.classList.toggle('active',['entry','consolidated'][i]===v);
   });
