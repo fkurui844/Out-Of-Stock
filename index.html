@@ -149,7 +149,7 @@
   .card-title { font-weight: 700; font-size: 15px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
 
   /* ── ENTRY FORM ── */
-  #entry-view { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+  #entry-view { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
   .field-group { margin-bottom: 16px; }
   .field-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; display: block; margin-bottom: 6px; }
   .field-input {
@@ -583,6 +583,88 @@
   }
   #pwd-cancel:hover { border-color: var(--text2); color: var(--text); }
 
+  /* ── LOGOUT BUTTON ── */
+  .logout-btn {
+    background: none; border: 1px solid var(--border2); color: var(--text2);
+    border-radius: 6px; padding: 6px 12px; cursor: pointer; font-family: var(--sans);
+    font-size: 12px; transition: all .15s; display: flex; align-items: center; gap: 5px;
+  }
+  .logout-btn:hover { border-color: var(--red-dim); color: var(--red); }
+
+  /* ── ADD-TO-QUEUE BUTTON ── */
+  #add-queue-btn {
+    background: var(--bg3); border: 1px solid var(--green-dim); color: var(--green);
+    border-radius: 8px; padding: 11px 22px; font-family: var(--sans); font-weight: 600;
+    font-size: 14px; cursor: pointer; transition: all .15s;
+  }
+  #add-queue-btn:hover:not(:disabled) { background: var(--green-glow); }
+  #add-queue-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── SUBMIT ALL BUTTON ── */
+  #submit-all-btn {
+    background: var(--green-dim); color: #fff; border: none; border-radius: 8px;
+    padding: 11px 26px; font-family: var(--sans); font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: background .15s;
+  }
+  #submit-all-btn:hover:not(:disabled) { background: var(--green); }
+  #submit-all-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
+
+  /* ── QUEUE PANEL ── */
+  #queue-panel {
+    display: none; margin-top: 20px;
+    background: var(--bg2); border: 1px solid var(--green-dim);
+    border-radius: 12px; overflow: hidden;
+  }
+  #queue-panel.show { display: block; }
+  .queue-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; background: var(--green-glow);
+    border-bottom: 1px solid var(--green-dim);
+  }
+  .queue-header-title { font-weight: 700; font-size: 14px; color: var(--green); display: flex; align-items: center; gap: 8px; }
+  .queue-count-badge {
+    background: var(--green); color: #fff; border-radius: 10px;
+    padding: 1px 8px; font-size: 11px; font-weight: 700;
+  }
+  .queue-total { font-family: var(--mono); font-size: 13px; color: var(--red); font-weight: 700; }
+  .queue-body { max-height: 320px; overflow-y: auto; }
+  .queue-row {
+    display: grid; grid-template-columns: 1fr 80px 110px 90px 32px;
+    gap: 8px; padding: 10px 18px; border-bottom: 1px solid var(--border);
+    align-items: center; font-size: 12px; transition: background .1s;
+  }
+  .queue-row:hover { background: var(--bg3); }
+  .queue-row:last-child { border-bottom: none; }
+  .queue-row-desc { font-weight: 500; color: var(--text); }
+  .queue-row-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .queue-row-note { font-size: 10px; color: var(--text3); margin-top: 2px; font-style: italic; }
+  .queue-row-qty { font-family: var(--mono); font-weight: 600; text-align: center; }
+  .queue-row-rev { font-family: var(--mono); font-weight: 700; color: var(--red); text-align: right; }
+  .queue-row-cat { text-align: center; }
+  .queue-remove-btn {
+    background: none; border: none; color: var(--text3); cursor: pointer;
+    font-size: 14px; padding: 2px 4px; border-radius: 4px; transition: color .15s;
+  }
+  .queue-remove-btn:hover { color: var(--red); }
+  .queue-footer {
+    padding: 14px 18px; border-top: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--bg3); flex-wrap: wrap;
+  }
+  .queue-footer-info { font-size: 12px; color: var(--text2); }
+  #queue-submit-progress { font-size: 12px; color: var(--green); font-family: var(--mono); margin-left: 8px; }
+
+  /* ── SESSION BANNER ── */
+  #session-banner {
+    display: none; background: var(--bg2); border: 1px solid var(--green-dim);
+    border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;
+    align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 12px; color: var(--text2);
+  }
+  #session-banner.show { display: flex; }
+  .session-info { display: flex; align-items: center; gap: 8px; }
+  .session-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); display: inline-block; }
+
   /* unlocked badge — now shows name */
   .loc-unlocked-badge {
     display: inline-flex; align-items: center; gap: 6px;
@@ -612,6 +694,7 @@
     <button class="nav-btn" onclick="switchView('consolidated')">📊 Dashboard</button>
   </div>
   <div class="header-actions">
+    <button class="logout-btn" id="logout-btn" onclick="logout()" style="display:none">🔓 Log Out</button>
     <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"><span id="theme-icon">🌙</span> Night</button>
     <button class="refresh-btn" onclick="loadEntries()">↻ Refresh</button>
   </div>
@@ -619,6 +702,15 @@
 
 <!-- ═══ APP ═══ -->
 <div id="app">
+
+  <!-- Session banner -->
+  <div id="session-banner">
+    <div class="session-info">
+      <span class="session-dot"></span>
+      <span>Logged in as <strong id="session-name-display"></strong> &nbsp;·&nbsp; <strong id="session-loc-display"></strong></span>
+    </div>
+    <span id="session-expiry-display" style="color:var(--text3);font-size:11px;font-family:var(--mono)"></span>
+  </div>
 
   <!-- Error bar -->
   <div id="error-bar">
@@ -769,9 +861,29 @@
         <div class="rev-value" id="rev-val">KES 0</div>
       </div>
 
-      <div style="display:flex;align-items:center">
-        <button id="submit-btn" onclick="submitEntry()">✓ Submit</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button id="add-queue-btn" onclick="addToQueue()">➕ Add to Queue</button>
+        <button id="submit-all-btn" onclick="submitAll()" disabled>✓ Submit All <span id="queue-btn-count"></span></button>
         <span id="save-feedback">✅ Successfully Submitted!</span>
+      </div>
+    </div>
+
+    <!-- Queue Panel (spans full entry-view width below form) -->
+    <div id="queue-panel" style="grid-column:1/-1">
+      <div class="queue-header">
+        <div class="queue-header-title">
+          🗂️ Pending Submissions
+          <span class="queue-count-badge" id="queue-count-badge">0</span>
+        </div>
+        <div class="queue-total">Total: <span id="queue-total-rev">KES 0</span></div>
+      </div>
+      <div class="queue-body" id="queue-body"></div>
+      <div class="queue-footer">
+        <span class="queue-footer-info">Review entries above, then click <strong>Submit All</strong> to post them to Google Sheets.</span>
+        <div style="display:flex;align-items:center">
+          <button id="submit-all-btn2" onclick="submitAll()" style="background:var(--green-dim);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-family:var(--sans);font-weight:600;font-size:13px;cursor:pointer;">✓ Submit All</button>
+          <span id="queue-submit-progress"></span>
+        </div>
       </div>
     </div>
 
@@ -1035,6 +1147,10 @@ let selectedProduct = null;
 let currentView = 'entry';
 let unlockedLocation = null;
 let unlockedName = '';
+let pendingEntries = [];   // batch queue
+
+const SESSION_KEY = 'oos_session';
+const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 hours in ms
 
 // ═══════════════════════════════════════════════════
 //  HELPERS
@@ -1055,15 +1171,94 @@ function setSyncing(on,msg=''){
 }
 
 // ═══════════════════════════════════════════════════
+//  SESSION PERSISTENCE
+// ═══════════════════════════════════════════════════
+function saveSession(loc, name){
+  const session = { loc, name, expiry: Date.now() + SESSION_TTL };
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch(e){}
+}
+
+function clearSession(){
+  try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+}
+
+function restoreSession(){
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if(!raw) return;
+    const session = JSON.parse(raw);
+    if(!session || Date.now() > session.expiry){ clearSession(); return; }
+    unlockedLocation = session.loc;
+    unlockedName = session.name;
+    // Pre-select location in dropdown
+    const sel = document.getElementById('f-location');
+    if(sel) sel.value = unlockedLocation;
+    updateLockBadge();
+    updateSessionBanner();
+  } catch(e){ clearSession(); }
+}
+
+function updateSessionBanner(){
+  const banner = document.getElementById('session-banner');
+  const logoutBtn = document.getElementById('logout-btn');
+  if(!banner) return;
+  if(unlockedLocation && unlockedName){
+    document.getElementById('session-name-display').textContent = unlockedName;
+    document.getElementById('session-loc-display').textContent = unlockedLocation;
+    // Show remaining session time
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if(raw){
+        const session = JSON.parse(raw);
+        const minsLeft = Math.round((session.expiry - Date.now()) / 60000);
+        const hrs = Math.floor(minsLeft/60), mins = minsLeft % 60;
+        document.getElementById('session-expiry-display').textContent =
+          `Session expires in ${hrs}h ${mins}m`;
+      }
+    } catch(e){}
+    banner.classList.add('show');
+    if(logoutBtn) logoutBtn.style.display = 'flex';
+  } else {
+    banner.classList.remove('show');
+    if(logoutBtn) logoutBtn.style.display = 'none';
+  }
+}
+
+function logout(){
+  if(pendingEntries.length > 0){
+    if(!confirm(`You have ${pendingEntries.length} unsent item(s) in the queue. Logging out will discard them. Continue?`)) return;
+  }
+  unlockedLocation = null;
+  unlockedName = '';
+  pendingEntries = [];
+  clearSession();
+  document.getElementById('f-location').value = '';
+  updateLockBadge();
+  updateSessionBanner();
+  renderQueue();
+}
+
+// ═══════════════════════════════════════════════════
 //  PASSWORD GATE
 // ═══════════════════════════════════════════════════
 function onLocationChange(){
   const loc = document.getElementById('f-location').value;
-  if(!loc){ unlockedLocation=null; unlockedName=''; updateLockBadge(); return; }
+  if(!loc){ unlockedLocation=null; unlockedName=''; clearSession(); updateLockBadge(); updateSessionBanner(); return; }
   if(unlockedLocation === loc) return;
+  // Switching location — warn if queue has items
+  if(pendingEntries.length > 0){
+    if(!confirm(`You have ${pendingEntries.length} item(s) in the queue for ${unlockedLocation}. Switching location will clear the queue. Continue?`)){
+      document.getElementById('f-location').value = unlockedLocation || '';
+      return;
+    }
+    pendingEntries = [];
+    renderQueue();
+  }
   unlockedLocation = null;
   unlockedName = '';
+  clearSession();
   updateLockBadge();
+  updateSessionBanner();
   document.getElementById('pwd-loc-name').textContent = loc;
   document.getElementById('pwd-name').value = '';
   document.getElementById('pwd-input').value = '';
@@ -1085,9 +1280,11 @@ function checkPassword(){
   if(entered === LOCATION_PASSWORDS[loc]){
     unlockedLocation = loc;
     unlockedName = name;
+    saveSession(loc, name);
     document.getElementById('pwd-overlay').classList.remove('show');
     document.getElementById('pwd-error').textContent = '';
     updateLockBadge();
+    updateSessionBanner();
   } else {
     document.getElementById('pwd-error').textContent = '❌ Incorrect password. Please try again.';
     document.getElementById('pwd-input').value = '';
@@ -1100,7 +1297,9 @@ function cancelPassword(){
   document.getElementById('pwd-overlay').classList.remove('show');
   unlockedLocation = null;
   unlockedName = '';
+  clearSession();
   updateLockBadge();
+  updateSessionBanner();
 }
 
 function updateLockBadge(){
@@ -1175,6 +1374,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   populateCatFilter();
   loadEntries();
   startAutoSync();
+  restoreSession();       // ← restore saved login
+  renderQueue();          // ← render any persisted queue state
   document.addEventListener('click', e=>{
     if(!e.target.closest('.dd-wrap')) closeDropdown();
   });
@@ -1385,25 +1586,20 @@ function updateRevPreview(){
 }
 
 // ═══════════════════════════════════════════════════
-//  SUBMIT ENTRY
+//  QUEUE MANAGEMENT
 // ═══════════════════════════════════════════════════
-async function submitEntry(){
+function addToQueue(){
   const loc = document.getElementById('f-location').value;
   const date = document.getElementById('f-date').value;
   const qty = parseFloat(document.getElementById('f-qty').value);
   const notes = document.getElementById('f-notes').value.trim();
   if(!loc||!selectedProduct||!qty||!notes){ showError('Please fill in Location, Product, Quantity and Reason for Lost Sale'); return; }
   if(unlockedLocation !== loc){
-    showError('Please unlock ' + loc + ' with the correct password before submitting.');
-    document.getElementById('f-location').value = loc;
-    onLocationChange();
-    return;
+    showError('Please unlock ' + loc + ' with the correct password first.');
+    onLocationChange(); return;
   }
-  const btn = document.getElementById('submit-btn');
-  btn.disabled=true; btn.textContent='⟳ Saving...';
-  hideError();
-  const payload = {
-    date, location:loc,
+  pendingEntries.push({
+    date, location: loc,
     recordedBy: unlockedName,
     productCode: selectedProduct.code,
     description: selectedProduct.desc,
@@ -1411,40 +1607,122 @@ async function submitEntry(){
     packaging: selectedProduct.pkg,
     weight: selectedProduct.wt,
     price: selectedProduct.price,
-    qty, revenue: selectedProduct.price*qty, notes
-  };
-  try{
-    // Apps Script POST using no-cors mode
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    });
-    
-    // POST succeeded (no-cors never throws unless truly offline)
-    selectedProduct=null;
-    document.getElementById('f-product-search').value='';
-    document.getElementById('f-qty').value='';
-    document.getElementById('f-notes').value='';
-    document.getElementById('product-strip').classList.remove('show');
-    document.getElementById('rev-preview').classList.remove('show');
+    qty, revenue: selectedProduct.price * qty,
+    notes,
+    _id: Date.now() + Math.random()
+  });
+  // Reset only product/qty/notes — keep location + date locked
+  selectedProduct = null;
+  document.getElementById('f-product-search').value = '';
+  document.getElementById('f-qty').value = '';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('product-strip').classList.remove('show');
+  document.getElementById('rev-preview').classList.remove('show');
+  hideError();
+  renderQueue();
+  document.getElementById('f-product-search').focus();
+}
+
+function removeFromQueue(id){
+  pendingEntries = pendingEntries.filter(e => e._id !== id);
+  renderQueue();
+}
+
+function renderQueue(){
+  const panel = document.getElementById('queue-panel');
+  const body = document.getElementById('queue-body');
+  const badge = document.getElementById('queue-count-badge');
+  const totalRev = document.getElementById('queue-total-rev');
+  const submitAllBtn = document.getElementById('submit-all-btn');
+  const btnCount = document.getElementById('queue-btn-count');
+
+  if(!pendingEntries.length){
+    panel.classList.remove('show');
+    if(submitAllBtn){ submitAllBtn.disabled = true; btnCount.textContent = ''; }
+    return;
+  }
+
+  panel.classList.add('show');
+  const total = pendingEntries.reduce((s,e)=>s+e.revenue, 0);
+  badge.textContent = pendingEntries.length;
+  totalRev.textContent = fmt(total);
+  if(submitAllBtn){ submitAllBtn.disabled = false; btnCount.textContent = `(${pendingEntries.length})`; }
+
+  body.innerHTML = pendingEntries.map(e => `
+    <div class="queue-row">
+      <div>
+        <div class="queue-row-desc">${esc(e.description)}</div>
+        <div class="queue-row-sub">[${esc(e.productCode)}] · ${esc(e.packaging)} · ${esc(e.date)}</div>
+        <div class="queue-row-note">💬 ${esc(e.notes)}</div>
+      </div>
+      <div class="queue-row-cat">${catBadge(e.category)}</div>
+      <div class="queue-row-qty">${fmtInt(e.qty)}</div>
+      <div class="queue-row-rev">${fmt(e.revenue)}</div>
+      <button class="queue-remove-btn" onclick="removeFromQueue(${e._id})" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+async function submitAll(){
+  if(!pendingEntries.length){ showError('Queue is empty — add items first.'); return; }
+  const allBtn = document.getElementById('submit-all-btn');
+  const allBtn2 = document.getElementById('submit-all-btn2');
+  const progress = document.getElementById('queue-submit-progress');
+  const addBtn = document.getElementById('add-queue-btn');
+  [allBtn, allBtn2, addBtn].forEach(b=>{ if(b){ b.disabled=true; } });
+  hideError();
+
+  let succeeded = 0;
+  const total = pendingEntries.length;
+  // Work on a copy so we can splice successes
+  const toSend = [...pendingEntries];
+
+  for(let i = 0; i < toSend.length; i++){
+    const entry = toSend[i];
+    if(progress) progress.textContent = `Submitting ${i+1}/${total}...`;
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          date: entry.date, location: entry.location,
+          recordedBy: entry.recordedBy,
+          productCode: entry.productCode,
+          description: entry.description,
+          category: entry.category,
+          packaging: entry.packaging,
+          weight: entry.weight,
+          price: entry.price,
+          qty: entry.qty,
+          revenue: entry.revenue,
+          notes: entry.notes
+        })
+      });
+      succeeded++;
+      // Remove from pending as we go
+      pendingEntries = pendingEntries.filter(e => e._id !== entry._id);
+    } catch(err){
+      showError(`Network error on item ${i+1} — please check connection and try again.`);
+      break;
+    }
+  }
+
+  if(progress) progress.textContent = '';
+  [allBtn, allBtn2, addBtn].forEach(b=>{ if(b){ b.disabled=false; } });
+
+  if(succeeded > 0){
     const fb = document.getElementById('save-feedback');
-    fb.textContent = '✅ Successfully Submitted!';
+    fb.textContent = `✅ ${succeeded} entr${succeeded===1?'y':'ies'} submitted!`;
     fb.classList.add('show');
-    setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully Submitted!'; }, 3000);
-    unlockedLocation = null;
-    unlockedName = '';
-    document.getElementById('f-location').value = '';
-    updateLockBadge();
-    // Small delay then reload to reflect saved entry
+    setTimeout(()=>{ fb.classList.remove('show'); }, 4000);
+    renderQueue();
     setTimeout(()=> loadEntries(), 1500);
-  } catch(e){
-    showError('Network error — please check your internet connection and try again.');
-  } finally {
-    btn.disabled=false; btn.textContent='✓ Submit';
   }
 }
+
+// ═══════════════════════════════════════════════════
+//  LEGACY SUBMIT (kept for compatibility, redirects to queue)
+// ═══════════════════════════════════════════════════
+function submitEntry(){ addToQueue(); }
 
 // ═══════════════════════════════════════════════════
 //  DELETE
