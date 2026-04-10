@@ -895,11 +895,11 @@
         <div class="stat-sub">Revenue Lost: <em id="today-rev">KES 0</em></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:12px">Top Locations by OOS Value</div>
+        <div class="stat-label" style="margin-bottom:12px">Top Locations · This Month</div>
         <div id="loc-bars"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:12px">OOS by Category</div>
+        <div class="stat-label" style="margin-bottom:12px">OOS by Category · This Month</div>
         <div id="cat-mini"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
       </div>
     </div>
@@ -1510,10 +1510,14 @@ function applyFilters(){
   if(noteEl){ const d = exportScope==='all'?allEntries:filteredEntries; noteEl.textContent='('+d.length+' records)'; }
 }
 function clearFilters(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const lastDay = new Date(y, now.getMonth()+1, 0).getDate();
   document.getElementById('filter-cat').value='';
   document.getElementById('filter-loc').value='';
-  document.getElementById('filter-date-from').value='';
-  document.getElementById('filter-date-to').value='';
+  document.getElementById('filter-date-from').value=`${y}-${m}-01`;
+  document.getElementById('filter-date-to').value=`${y}-${m}-${String(lastDay).padStart(2,'0')}`;
   applyFilters();
 }
 
@@ -1532,6 +1536,20 @@ function switchView(v){
   document.querySelectorAll('.nav-btn').forEach((b,i)=>{
     b.classList.toggle('active',['entry','consolidated'][i]===v);
   });
+  // Default dashboard to current month if no date filter is set
+  if(v === 'consolidated'){
+    const dateFrom = document.getElementById('filter-date-from');
+    const dateTo   = document.getElementById('filter-date-to');
+    if(!dateFrom.value && !dateTo.value){
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth()+1).padStart(2,'0');
+      const lastDay = new Date(y, now.getMonth()+1, 0).getDate();
+      dateFrom.value = `${y}-${m}-01`;
+      dateTo.value   = `${y}-${m}-${String(lastDay).padStart(2,'0')}`;
+      applyFilters();
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -2024,11 +2042,18 @@ function fmtInt(n) {
 // ═══════════════════════════════════════════════════
 function updateSideStats(){
   const td = today();
+  const thisMonth = td.slice(0, 7); // "YYYY-MM"
+
+  // Today's entries (unchanged)
   const todayE = allEntries.filter(e=>e.date===td);
   document.getElementById('today-count').textContent=fmtInt(todayE.length);
   document.getElementById('today-rev').textContent=fmt(todayE.reduce((s,e)=>s+e.revenue,0));
+
+  // Current-month entries only for the side charts
+  const monthEntries = allEntries.filter(e => e.date && e.date.slice(0,7) === thisMonth);
+
   const byLoc={}, byCat={};
-  allEntries.forEach(e=>{
+  monthEntries.forEach(e=>{
     byLoc[e.location]=(byLoc[e.location]||0)+e.revenue;
     byCat[e.category]=(byCat[e.category]||0)+e.revenue;
   });
@@ -2039,13 +2064,13 @@ function updateSideStats(){
     <div class="bar-item">
       <div class="bar-head"><span style="font-size:11px">${esc(l)}</span><span style="font-family:var(--mono);font-size:11px;color:var(--red)">${fmt(v)}</span></div>
       <div class="bar-track"><div class="bar-fill" style="width:${((v/maxLoc)*100).toFixed(1)}%"></div></div>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
+    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data this month</div>';
   const catEl=document.getElementById('cat-mini');
   const catSorted=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,7);
   catEl.innerHTML=catSorted.length?catSorted.map(([cat,v])=>`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:11px">
       ${catBadge(cat)}<span style="font-family:var(--mono)">${fmt(v)}</span>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
+    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data this month</div>';
   
   // Update remarks analysis
   updateRemarksAnalysis();
