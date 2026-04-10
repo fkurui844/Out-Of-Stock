@@ -1664,50 +1664,51 @@ function renderQueue(){
 
 async function submitAll(){
   if(!pendingEntries.length){ showError('Queue is empty — add items first.'); return; }
-  const allBtn = document.getElementById('submit-all-btn');
+  const allBtn  = document.getElementById('submit-all-btn');
   const allBtn2 = document.getElementById('submit-all-btn2');
   const progress = document.getElementById('queue-submit-progress');
-  const addBtn = document.getElementById('add-queue-btn');
-  [allBtn, allBtn2, addBtn].forEach(b=>{ if(b){ b.disabled=true; } });
+  const addBtn  = document.getElementById('add-queue-btn');
+  [allBtn, allBtn2, addBtn].forEach(b=>{ if(b) b.disabled = true; });
   hideError();
 
-  let succeeded = 0;
-  const total = pendingEntries.length;
-  // Work on a copy so we can splice successes
   const toSend = [...pendingEntries];
+  const total  = toSend.length;
+  if(progress) progress.textContent = `Sending ${total} entr${total===1?'y':'ies'}...`;
 
-  for(let i = 0; i < toSend.length; i++){
-    const entry = toSend[i];
-    if(progress) progress.textContent = `Submitting ${i+1}/${total}...`;
-    try {
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          date: entry.date, location: entry.location,
-          recordedBy: entry.recordedBy,
-          productCode: entry.productCode,
-          description: entry.description,
-          category: entry.category,
-          packaging: entry.packaging,
-          weight: entry.weight,
-          price: entry.price,
-          qty: entry.qty,
-          revenue: entry.revenue,
-          notes: entry.notes
-        })
-      });
-      succeeded++;
-      // Remove from pending as we go
-      pendingEntries = pendingEntries.filter(e => e._id !== entry._id);
-    } catch(err){
-      showError(`Network error on item ${i+1} — please check connection and try again.`);
-      break;
-    }
-  }
+  // Fire ALL requests simultaneously — no waiting for one to finish before starting the next
+  const postEntry = entry => fetch(APPS_SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      date: entry.date, location: entry.location,
+      recordedBy: entry.recordedBy,
+      productCode: entry.productCode,
+      description: entry.description,
+      category: entry.category,
+      packaging: entry.packaging,
+      weight: entry.weight,
+      price: entry.price,
+      qty: entry.qty,
+      revenue: entry.revenue,
+      notes: entry.notes
+    })
+  });
+
+  const results = await Promise.allSettled(toSend.map(postEntry));
+
+  const succeeded = results.filter(r => r.status === 'fulfilled').length;
+  const failed    = results.filter(r => r.status === 'rejected').length;
+
+  // Clear successfully-sent entries from queue
+  results.forEach((r, i) => {
+    if(r.status === 'fulfilled')
+      pendingEntries = pendingEntries.filter(e => e._id !== toSend[i]._id);
+  });
 
   if(progress) progress.textContent = '';
-  [allBtn, allBtn2, addBtn].forEach(b=>{ if(b){ b.disabled=false; } });
+  [allBtn, allBtn2, addBtn].forEach(b=>{ if(b) b.disabled = false; });
+
+  if(failed > 0) showError(`${failed} entr${failed===1?'y':'ies'} failed to send — check your connection and try again.`);
 
   if(succeeded > 0){
     const fb = document.getElementById('save-feedback');
