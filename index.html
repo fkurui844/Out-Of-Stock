@@ -281,6 +281,38 @@
   .bar-track { height: 5px; background: var(--border2); border-radius: 3px; overflow: hidden; }
   .bar-fill { height: 100%; border-radius: 3px; background: var(--red); transition: width .4s; }
 
+  /* ── MY SUBMISSIONS FEED ── */
+  #my-feed-card { display: flex; flex-direction: column; }
+  .my-feed-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .my-feed-count {
+    font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--green);
+    background: var(--green-glow); border: 1px solid var(--green-dim); border-radius: 8px;
+    min-width: 34px; text-align: center; padding: 2px 8px; line-height: 1.4;
+  }
+  .my-feed-summary {
+    font-size: 11px; color: var(--text2); margin: 10px 0 0; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border2); display: none;
+  }
+  .my-feed-summary.show { display: block; }
+  .my-feed-summary em { color: var(--red); font-style: normal; font-family: var(--mono); font-weight: 600; }
+  .my-feed-list {
+    display: flex; flex-direction: column; gap: 8px; margin-top: 10px;
+    max-height: 420px; overflow-y: auto;
+  }
+  .feed-item {
+    background: var(--bg); border: 1px solid var(--border2); border-radius: 9px;
+    padding: 10px 12px; animation: feedIn .25s ease;
+  }
+  .feed-item.is-new { border-color: var(--green-dim); box-shadow: 0 0 0 1px var(--green-glow); }
+  @keyframes feedIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+  .feed-item-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .feed-item-desc { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .feed-item-rev { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); white-space: nowrap; }
+  .feed-item-meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 10.5px; color: var(--text3); }
+  .feed-item-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+  .feed-item-time { font-family: var(--mono); }
+  .feed-item-note { font-size: 10.5px; color: var(--text3); margin-top: 4px; font-style: italic; }
+
   /* ── CAT BADGE ── */
   .cat-badge {
     display: inline-block; padding: 2px 8px; border-radius: 4px;
@@ -777,22 +809,20 @@
       </div>
     </div>
 
-    <!-- Side stats -->
+    <!-- My Submissions feed -->
     <div class="side-stats">
-      <div class="stat-card">
-        <div class="stat-label">Today's OOS Entries</div>
-        <div class="stat-big" id="today-count">0</div>
-        <div class="stat-sub">Revenue Lost: <em id="today-rev">KES 0</em></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:2px">Top Locations by OOS Value</div>
-        <div class="stat-scope" id="stat-scope-1">This month</div>
-        <div id="loc-bars" style="margin-top:10px"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:2px">OOS by Category</div>
-        <div class="stat-scope" id="stat-scope-2">This month</div>
-        <div id="cat-mini" style="margin-top:10px"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
+      <div class="stat-card" id="my-feed-card">
+        <div class="my-feed-head">
+          <div>
+            <div class="stat-label" style="margin-bottom:2px">My Submissions</div>
+            <div class="stat-scope" id="my-feed-scope">Unlock a location to begin</div>
+          </div>
+          <div class="my-feed-count" id="my-feed-count">0</div>
+        </div>
+        <div class="my-feed-summary" id="my-feed-summary"></div>
+        <div class="my-feed-list" id="my-feed-list">
+          <div style="color:var(--text3);font-size:12px;padding:4px 0">No submissions yet today</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1049,6 +1079,8 @@ let selectedProduct = null;
 let currentView = 'entry';
 let unlockedLocation = null;
 let unlockedName = '';
+let sessionSupervisorName = ''; // persists across submits within this browser session, for the "My Submissions" feed
+let myFeedLocal = []; // optimistic just-submitted entries, shown until the server sync catches up
 
 // ═══════════════════════════════════════════════════
 //  HELPERS
@@ -1075,7 +1107,7 @@ function setSyncing(on,msg=''){
 // ═══════════════════════════════════════════════════
 function onLocationChange(){
   const loc = document.getElementById('f-location').value;
-  if(!loc){ unlockedLocation=null; unlockedName=''; updateLockBadge(); return; }
+  if(!loc){ unlockedLocation=null; unlockedName=''; sessionSupervisorName=''; updateLockBadge(); renderMyFeed(); return; }
   if(unlockedLocation === loc) return;
   unlockedLocation = null;
   unlockedName = '';
@@ -1101,9 +1133,11 @@ function checkPassword(){
   if(entered === LOCATION_PASSWORDS[loc]){
     unlockedLocation = loc;
     unlockedName = name;
+    sessionSupervisorName = name;
     document.getElementById('pwd-overlay').classList.remove('show');
     document.getElementById('pwd-error').textContent = '';
     updateLockBadge();
+    renderMyFeed();
   } else {
     document.getElementById('pwd-error').textContent = '❌ Incorrect password. Please try again.';
     document.getElementById('pwd-input').value = '';
@@ -1116,7 +1150,9 @@ function cancelPassword(){
   document.getElementById('pwd-overlay').classList.remove('show');
   unlockedLocation = null;
   unlockedName = '';
+  sessionSupervisorName = '';
   updateLockBadge();
+  renderMyFeed();
 }
 
 function updateLockBadge(){
@@ -1255,9 +1291,10 @@ function loadEntries(){
           timestamp: e['Timestamp']||'',
           recordedBy: e['Recorded By']||''
         }));
+        myFeedLocal = []; // server data now reflects any just-submitted entries
         populateLocFilter();
         applyFilters();
-        updateSideStats();
+        renderMyFeed();
         setSyncing(false);
         startAutoSync();
       } else {
@@ -1335,13 +1372,9 @@ function applyFilters(){
     : ` <span style="color:var(--text3);font-weight:400">(${thisMonthLabel} · use Period to view other dates)</span>`;
   document.getElementById('filter-summary').innerHTML =
     `<span style="color:var(--text)">${filteredEntries.length}</span> records · Revenue Lost: <span>${fmt(total)}</span>${scopeNote}`;
-  ['stat-scope-1','stat-scope-2'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.textContent = scopeLabel;
-  });
   renderTable();
   renderConsolidated();
-  updateSideStats();
+  renderMyFeed();
   // Update export scope note
   const noteEl = document.getElementById('export-scope-note');
   if(noteEl){ const d = exportScope==='all'?allEntries:filteredEntries; noteEl.textContent='('+d.length+' records)'; }
@@ -1460,6 +1493,7 @@ async function submitEntry(){
     });
     
     // POST succeeded (no-cors never throws unless truly offline)
+    myFeedLocal.unshift({ ...payload, _optimistic:true, timestamp:new Date().toISOString() });
     selectedProduct=null;
     document.getElementById('f-product-search').value='';
     document.getElementById('f-qty').value='';
@@ -1474,12 +1508,13 @@ async function submitEntry(){
     unlockedName = '';
     document.getElementById('f-location').value = '';
     updateLockBadge();
+    renderMyFeed();
     // Small delay then reload to reflect saved entry
     setTimeout(()=> loadEntries(), 1500);
   } catch(e){
     showError('Network error — please check your internet connection and try again.');
   } finally {
-    btn.disabled=false; btn.textContent='✓ Submit';
+    btn.disabled=false; btn.textContent='✓ Submit Entry';
   }
 }
 
@@ -1829,32 +1864,78 @@ function fmtInt(n) {
 
 
 // ═══════════════════════════════════════════════════
-//  SIDE STATS (entry view)
+//  MY SUBMISSIONS FEED (entry view)
 // ═══════════════════════════════════════════════════
-function updateSideStats(){
+function timeAgo(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return '';
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.floor(diffMs/60000);
+  if(mins < 1) return 'just now';
+  if(mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins/60);
+  if(hrs < 24) return hrs + 'h ago';
+  return d.toLocaleDateString('en-KE',{day:'numeric',month:'short'});
+}
+
+function renderMyFeed(){
+  const scopeEl = document.getElementById('my-feed-scope');
+  const countEl = document.getElementById('my-feed-count');
+  const summaryEl = document.getElementById('my-feed-summary');
+  const listEl = document.getElementById('my-feed-list');
+  if(!listEl) return;
+
+  if(!sessionSupervisorName){
+    scopeEl.textContent = 'Unlock a location to begin';
+    countEl.textContent = '0';
+    summaryEl.classList.remove('show');
+    listEl.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:4px 0">No submissions yet today</div>';
+    return;
+  }
+
   const td = today();
-  const todayE = allEntries.filter(e=>e.date===td);
-  document.getElementById('today-count').textContent=fmtInt(todayE.length);
-  document.getElementById('today-rev').textContent=fmt(todayE.reduce((s,e)=>s+e.revenue,0));
-  const byLoc={}, byCat={};
-  filteredEntries.forEach(e=>{
-    byLoc[e.location]=(byLoc[e.location]||0)+e.revenue;
-    byCat[e.category]=(byCat[e.category]||0)+e.revenue;
+  const name = sessionSupervisorName.trim().toLowerCase();
+
+  // Server-confirmed entries by this supervisor, today
+  const confirmed = allEntries.filter(e=>e.date===td && (e.recordedBy||'').trim().toLowerCase()===name);
+
+  // Optimistic entries not yet reflected in allEntries (avoid double-count by matching timestamp)
+  const confirmedTimestamps = new Set(confirmed.map(e=>e.timestamp).filter(Boolean));
+  const optimistic = myFeedLocal.filter(e=>!confirmedTimestamps.has(e.timestamp));
+
+  const combined = [...optimistic, ...confirmed].sort((a,b)=>{
+    const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return tb - ta; // newest first
   });
-  const maxLoc=Math.max(...Object.values(byLoc),1);
-  const locEl=document.getElementById('loc-bars');
-  const locSorted=Object.entries(byLoc).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  locEl.innerHTML=locSorted.length?locSorted.map(([l,v])=>`
-    <div class="bar-item">
-      <div class="bar-head"><span style="font-size:11px">${esc(l)}</span><span style="font-family:var(--mono);font-size:11px;color:var(--red)">${fmt(v)}</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${((v/maxLoc)*100).toFixed(1)}%"></div></div>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
-  const catEl=document.getElementById('cat-mini');
-  const catSorted=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  catEl.innerHTML=catSorted.length?catSorted.map(([cat,v])=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:11px">
-      ${catBadge(cat)}<span style="font-family:var(--mono)">${fmt(v)}</span>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
+
+  scopeEl.textContent = esc(sessionSupervisorName) + ' · Today';
+  countEl.textContent = fmtInt(combined.length);
+
+  if(!combined.length){
+    summaryEl.classList.remove('show');
+    listEl.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:4px 0">No submissions yet today</div>';
+    return;
+  }
+
+  const totalRev = combined.reduce((s,e)=>s+(e.revenue||0),0);
+  summaryEl.classList.add('show');
+  summaryEl.innerHTML = `${fmtInt(combined.length)} product${combined.length===1?'':'s'} logged · Revenue Lost: <em>${fmt(totalRev)}</em>`;
+
+  listEl.innerHTML = combined.map((e,i)=>`
+    <div class="feed-item${e._optimistic?' is-new':''}">
+      <div class="feed-item-top">
+        <span class="feed-item-desc">${esc(e.description||e.productCode||'—')}</span>
+        <span class="feed-item-rev">${fmt(e.revenue)}</span>
+      </div>
+      <div class="feed-item-meta">
+        <span>${esc(e.location)}</span><span class="dot"></span>
+        <span>Qty ${fmtInt(e.qty)}</span><span class="dot"></span>
+        <span class="feed-item-time">${e._optimistic ? 'just now' : timeAgo(e.timestamp)}</span>
+      </div>
+      ${e.notes?`<div class="feed-item-note">"${esc(e.notes)}"</div>`:''}
+    </div>`).join('');
 }
 
 </script>
