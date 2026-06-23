@@ -352,6 +352,7 @@
   .side-stats { display: flex; flex-direction: column; gap: 14px; }
   .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
   .stat-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+  .stat-scope { font-size: 10.5px; color: var(--text3); font-family: var(--mono); }
   .stat-big { font-family: var(--mono); font-size: 26px; font-weight: 600; color: var(--text); }
   .stat-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
   .stat-sub em { color: var(--red); font-style: normal; font-family: var(--mono); }
@@ -876,12 +877,14 @@
         <div class="stat-sub">Revenue Lost: <em id="today-rev">KES 0</em></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:12px">Top Locations by OOS Value</div>
-        <div id="loc-bars"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
+        <div class="stat-label" style="margin-bottom:2px">Top Locations by OOS Value</div>
+        <div class="stat-scope" id="stat-scope-1">This month</div>
+        <div id="loc-bars" style="margin-top:10px"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:12px">OOS by Category</div>
-        <div id="cat-mini"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
+        <div class="stat-label" style="margin-bottom:2px">OOS by Category</div>
+        <div class="stat-scope" id="stat-scope-2">This month</div>
+        <div id="cat-mini" style="margin-top:10px"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
       </div>
     </div>
   </div>
@@ -1144,6 +1147,8 @@ let unlockedName = '';
 // ═══════════════════════════════════════════════════
 const fmt = n => new Intl.NumberFormat('en-KE',{style:'currency',currency:'KES',minimumFractionDigits:0}).format(n||0);
 const today = () => new Date().toISOString().split('T')[0];
+const currentMonthStart = () => today().slice(0,7) + '-01';
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function catBadge(cat){
   const c = CAT_COLORS[cat]||'#6b7280';
@@ -1395,20 +1400,40 @@ function applyFilters(){
   const loc = document.getElementById('filter-loc').value;
   const dateFrom = document.getElementById('filter-date-from').value;
   const dateTo = document.getElementById('filter-date-to').value;
-  const hasFilter = cat||loc||dateFrom||dateTo;
+  const hasDateFilter = dateFrom||dateTo;
+  const hasFilter = cat||loc||hasDateFilter;
   document.getElementById('clear-btn').style.display = hasFilter?'inline-block':'none';
+
+  // Default scope: current month only. Once the user sets an explicit date
+  // filter, honor that instead (and it can span any period, past or present).
+  const effFrom = hasDateFilter ? dateFrom : currentMonthStart();
+  const effTo = hasDateFilter ? dateTo : '';
+
   filteredEntries = allEntries.filter(e=>{
     if(cat && e.category!==cat) return false;
     if(loc && e.location!==loc) return false;
-    if(dateFrom && e.date < dateFrom) return false;
-    if(dateTo && e.date > dateTo) return false;
+    if(effFrom && e.date < effFrom) return false;
+    if(effTo && e.date > effTo) return false;
     return true;
   });
   const total = filteredEntries.reduce((s,e)=>s+e.revenue,0);
+
+  const thisMonthLabel = `${MONTH_NAMES[Number(today().slice(5,7))-1]} ${today().slice(0,4)}`;
+  const scopeLabel = hasDateFilter
+    ? `${dateFrom||'…'} → ${dateTo||'…'}`
+    : thisMonthLabel;
+  const scopeNote = hasDateFilter
+    ? ''
+    : ` <span style="color:var(--text3);font-weight:400">(${thisMonthLabel} · use Period to view other dates)</span>`;
   document.getElementById('filter-summary').innerHTML =
-    `<span style="color:var(--text)">${filteredEntries.length}</span> records · Revenue Lost: <span>${fmt(total)}</span>`;
+    `<span style="color:var(--text)">${filteredEntries.length}</span> records · Revenue Lost: <span>${fmt(total)}</span>${scopeNote}`;
+  ['stat-scope-1','stat-scope-2'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = scopeLabel;
+  });
   renderTable();
   renderConsolidated();
+  updateSideStats();
   updateRemarksAnalysis();
   // Update export scope note
   const noteEl = document.getElementById('export-scope-note');
@@ -1603,8 +1628,6 @@ function renderTable(){
 // ═══════════════════════════════════════════════════
 //  SUPERVISOR ACTIVITY (current month)
 // ═══════════════════════════════════════════════════
-const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
 function renderSupervisorActivity(){
   const listEl = document.getElementById('sup-list');
   const periodEl = document.getElementById('sup-card-period');
@@ -1908,7 +1931,7 @@ function updateSideStats(){
   document.getElementById('today-count').textContent=fmtInt(todayE.length);
   document.getElementById('today-rev').textContent=fmt(todayE.reduce((s,e)=>s+e.revenue,0));
   const byLoc={}, byCat={};
-  allEntries.forEach(e=>{
+  filteredEntries.forEach(e=>{
     byLoc[e.location]=(byLoc[e.location]||0)+e.revenue;
     byCat[e.category]=(byCat[e.category]||0)+e.revenue;
   });
