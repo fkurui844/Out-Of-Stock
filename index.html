@@ -1,7 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
-<head>\
+<head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>OOS Tracker</title>
@@ -150,23 +149,57 @@
   .card-title { font-weight: 700; font-size: 15px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
 
   /* ── ENTRY FORM ── */
-  #entry-view { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
-  .field-group { margin-bottom: 16px; }
-  .field-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; display: block; margin-bottom: 6px; }
+  #entry-view { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+
+  #entry-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 0; overflow: hidden;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px -16px rgba(0,0,0,0.4);
+  }
+  .entry-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--bg3), var(--bg2));
+  }
+  .entry-card-heading { display: flex; align-items: center; gap: 11px; }
+  .entry-card-icon {
+    width: 34px; height: 34px; flex-shrink: 0; border-radius: 9px;
+    background: var(--green-glow); border: 1px solid var(--green-dim);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .entry-card-title { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; line-height: 1.2; }
+  .entry-card-subtitle { font-size: 11.5px; color: var(--text3); margin-top: 2px; }
+  .entry-card-body { padding: 22px; }
+
+  .field-group { margin-bottom: 18px; }
+  .field-label {
+    font-size: 10.5px; font-weight: 600; color: var(--text3); text-transform: uppercase;
+    letter-spacing: .07em; display: flex; align-items: center; gap: 5px; margin-bottom: 7px;
+  }
+  .field-label .req { color: var(--red); font-size: 10px; }
   .field-input {
     width: 100%; background: var(--bg); border: 1px solid var(--border2);
-    border-radius: 8px; padding: 10px 13px; color: var(--text);
-    font-family: var(--sans); font-size: 13px; outline: none; transition: border .15s;
+    border-radius: 9px; padding: 11px 14px; color: var(--text);
+    font-family: var(--sans); font-size: 13.5px; outline: none;
+    transition: border-color .15s, box-shadow .15s, background .15s;
     color-scheme: dark;
   }
+  .field-input::placeholder { color: var(--text3); }
   body.light-theme .field-input,
   body.light-theme select.field-input {
     color-scheme: light;
   }
   .field-input, select.field-input { color-scheme: dark; }
-  .field-input:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px var(--green-glow); }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .three-col { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; }
+  .field-input:hover { border-color: var(--text3); }
+  .field-input:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px var(--green-glow); background: var(--bg2); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+
+  /* status row under location/date */
+  .entry-status-row {
+    display: flex; align-items: center; gap: 8px; margin: -6px 0 18px; min-height: 14px;
+    flex-wrap: wrap;
+  }
 
   /* ── REMARKS ANALYSIS ── */
   #remarks-analysis {
@@ -272,34 +305,47 @@
   /* product info strip */
   #product-strip {
     display: none; background: var(--bg3); border: 1px solid var(--green-dim);
-    border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;
-    grid-template-columns: repeat(4,1fr); gap: 10px;
-    animation: fadein .2s ease;
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 18px;
+    grid-template-columns: repeat(4,1fr); gap: 10px 16px;
+    animation: fadein .2s ease; position: relative;
   }
   #product-strip.show { display: grid; }
+  #product-strip::before {
+    content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px;
+    background: var(--green-dim); border-radius: 0 3px 3px 0;
+  }
   @keyframes fadein { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
-  .strip-item .si-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing:.07em; }
-  .strip-item .si-value { font-size: 13px; font-weight: 600; color: var(--green); margin-top: 3px; font-family: var(--mono); }
+  .strip-item { min-width: 0; }
+  .strip-item .si-label { font-size: 9.5px; color: var(--text3); text-transform: uppercase; letter-spacing:.08em; font-weight: 600; }
+  .strip-item .si-value { font-size: 13.5px; font-weight: 600; color: var(--green); margin-top: 4px; font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* revenue preview */
   #rev-preview {
-    display: none; background: #1a1200; border: 1px solid #92400e;
-    border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+    display: none; background: linear-gradient(135deg, #1a1200, #150f00); border: 1px solid #92400e;
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 18px;
     justify-content: space-between; align-items: center;
+    box-shadow: 0 4px 16px -8px rgba(251,191,36,0.15);
   }
   #rev-preview.show { display: flex; }
-  .rev-label { color: var(--amber); font-size: 12px; }
-  .rev-value { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--amber); }
+  .rev-label { color: var(--amber); font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .rev-value { font-family: var(--mono); font-weight: 700; font-size: 23px; color: var(--amber); letter-spacing: -0.01em; }
 
   /* submit btn */
-  #submit-btn {
-    background: var(--green-dim); color: #fff; border: none; border-radius: 8px;
-    padding: 11px 26px; font-family: var(--sans); font-weight: 600; font-size: 14px;
-    cursor: pointer; transition: background .15s;
+  .entry-card-footer {
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-top: 4px;
   }
-  #submit-btn:hover:not(:disabled) { background: var(--green); }
-  #submit-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
-  #save-feedback { font-size: 13px; font-weight: 600; color: var(--green); margin-left: 14px; opacity: 0; transition: opacity .4s; }
+  #submit-btn {
+    background: var(--green-dim); color: #fff; border: none; border-radius: 9px;
+    padding: 12px 28px; font-family: var(--sans); font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: background .15s, transform .1s, box-shadow .15s;
+    box-shadow: 0 2px 10px -2px rgba(34,197,94,0.35);
+    display: flex; align-items: center; gap: 7px;
+  }
+  #submit-btn:hover:not(:disabled) { background: var(--green); box-shadow: 0 4px 14px -2px rgba(34,197,94,0.45); }
+  #submit-btn:active:not(:disabled) { transform: translateY(1px); }
+  #submit-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; box-shadow: none; }
+  #save-feedback { font-size: 13px; font-weight: 600; color: var(--green); margin-right: 14px; opacity: 0; transition: opacity .4s; display: flex; align-items: center; gap: 6px; }
   #save-feedback.show { opacity: 1; }
 
   /* ── SIDE STATS ── */
@@ -366,6 +412,36 @@
   .sumcard-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing:.07em; margin-bottom:6px; }
   .sumcard-val { font-family: var(--mono); font-size: 22px; font-weight: 600; }
   .sumcard-icon { font-size: 22px; }
+
+  /* ── SUPERVISOR ACTIVITY CARD ── */
+  #supervisor-card { margin-bottom: 20px; }
+  .sup-card-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .sup-card-period { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .sup-list { display: flex; flex-direction: column; gap: 10px; }
+  .sup-row {
+    display: grid; grid-template-columns: 28px 1fr auto auto; align-items: center;
+    gap: 12px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border2);
+    border-radius: 9px;
+  }
+  .sup-avatar {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--green-glow);
+    border: 1px solid var(--green-dim); color: var(--green); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; font-family: var(--sans);
+  }
+  .sup-name { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .sup-name .sup-loc-list { font-weight: 400; color: var(--text3); font-size: 10.5px; margin-top: 1px; display:block; }
+  .sup-days-track {
+    width: 110px; height: 6px; background: var(--border2); border-radius: 3px; overflow: hidden;
+  }
+  .sup-days-fill { height: 100%; border-radius: 3px; background: var(--green-dim); transition: width .4s; }
+  .sup-days-val {
+    font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); white-space: nowrap;
+    text-align: right; min-width: 64px;
+  }
+  .sup-days-val small { color: var(--text3); font-weight: 400; font-size: 10px; }
   .two-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
   .con-cat-table { margin-bottom: 16px; }
   .con-cat-head {
@@ -584,98 +660,20 @@
   }
   #pwd-cancel:hover { border-color: var(--text2); color: var(--text); }
 
-  /* ── LOGOUT BUTTON ── */
-  .logout-btn {
-    background: none; border: 1px solid var(--border2); color: var(--text2);
-    border-radius: 6px; padding: 6px 12px; cursor: pointer; font-family: var(--sans);
-    font-size: 12px; transition: all .15s; display: flex; align-items: center; gap: 5px;
-  }
-  .logout-btn:hover { border-color: var(--red-dim); color: var(--red); }
-
-  /* ── ADD-TO-QUEUE BUTTON ── */
-  #add-queue-btn {
-    background: var(--bg3); border: 1px solid var(--green-dim); color: var(--green);
-    border-radius: 8px; padding: 11px 22px; font-family: var(--sans); font-weight: 600;
-    font-size: 14px; cursor: pointer; transition: all .15s;
-  }
-  #add-queue-btn:hover:not(:disabled) { background: var(--green-glow); }
-  #add-queue-btn:disabled { opacity: .4; cursor: not-allowed; }
-
-  /* ── SUBMIT ALL BUTTON ── */
-  #submit-all-btn {
-    background: var(--green-dim); color: #fff; border: none; border-radius: 8px;
-    padding: 11px 26px; font-family: var(--sans); font-weight: 600; font-size: 14px;
-    cursor: pointer; transition: background .15s;
-  }
-  #submit-all-btn:hover:not(:disabled) { background: var(--green); }
-  #submit-all-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
-
-  /* ── QUEUE PANEL ── */
-  #queue-panel {
-    display: none; margin-top: 20px;
-    background: var(--bg2); border: 1px solid var(--green-dim);
-    border-radius: 12px; overflow: hidden;
-  }
-  #queue-panel.show { display: block; }
-  .queue-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 18px; background: var(--green-glow);
-    border-bottom: 1px solid var(--green-dim);
-  }
-  .queue-header-title { font-weight: 700; font-size: 14px; color: var(--green); display: flex; align-items: center; gap: 8px; }
-  .queue-count-badge {
-    background: var(--green); color: #fff; border-radius: 10px;
-    padding: 1px 8px; font-size: 11px; font-weight: 700;
-  }
-  .queue-total { font-family: var(--mono); font-size: 13px; color: var(--red); font-weight: 700; }
-  .queue-body { max-height: 320px; overflow-y: auto; }
-  .queue-row {
-    display: grid; grid-template-columns: 1fr 80px 110px 90px 32px;
-    gap: 8px; padding: 10px 18px; border-bottom: 1px solid var(--border);
-    align-items: center; font-size: 12px; transition: background .1s;
-  }
-  .queue-row:hover { background: var(--bg3); }
-  .queue-row:last-child { border-bottom: none; }
-  .queue-row-desc { font-weight: 500; color: var(--text); }
-  .queue-row-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
-  .queue-row-note { font-size: 10px; color: var(--text3); margin-top: 2px; font-style: italic; }
-  .queue-row-qty { font-family: var(--mono); font-weight: 600; text-align: center; }
-  .queue-row-rev { font-family: var(--mono); font-weight: 700; color: var(--red); text-align: right; }
-  .queue-row-cat { text-align: center; }
-  .queue-remove-btn {
-    background: none; border: none; color: var(--text3); cursor: pointer;
-    font-size: 14px; padding: 2px 4px; border-radius: 4px; transition: color .15s;
-  }
-  .queue-remove-btn:hover { color: var(--red); }
-  .queue-footer {
-    padding: 14px 18px; border-top: 1px solid var(--border2);
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    background: var(--bg3); flex-wrap: wrap;
-  }
-  .queue-footer-info { font-size: 12px; color: var(--text2); }
-  #queue-submit-progress { font-size: 12px; color: var(--green); font-family: var(--mono); margin-left: 8px; }
-
-  /* ── SESSION BANNER ── */
-  #session-banner {
-    display: none; background: var(--bg2); border: 1px solid var(--green-dim);
-    border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;
-    align-items: center; justify-content: space-between; gap: 10px;
-    font-size: 12px; color: var(--text2);
-  }
-  #session-banner.show { display: flex; }
-  .session-info { display: flex; align-items: center; gap: 8px; }
-  .session-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); display: inline-block; }
-
   /* unlocked badge — now shows name */
   .loc-unlocked-badge {
-    display: inline-flex; align-items: center; gap: 6px;
+    display: inline-flex; align-items: center; gap: 7px;
     background: var(--green-glow); border: 1px solid var(--green-dim);
-    color: var(--green); border-radius: 6px; padding: 4px 10px;
-    font-size: 11px; font-weight: 600; margin-left: 10px;
+    color: var(--green); border-radius: 999px; padding: 5px 12px 5px 9px;
+    font-size: 11.5px; font-weight: 600;
+  }
+  .loc-unlocked-badge .badge-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 5px var(--green); flex-shrink: 0;
   }
   .loc-unlocked-badge .badge-name {
-    color: var(--text); font-weight: 400; border-left: 1px solid var(--green-dim);
-    padding-left: 8px; margin-left: 2px;
+    color: var(--text); font-weight: 500; border-left: 1px solid var(--green-dim);
+    padding-left: 8px; margin-left: 1px; display: flex; align-items: center; gap: 4px;
   }
 </style>
 </head>
@@ -691,11 +689,10 @@
     </div>
   </div>
   <div class="nav-tabs">
-    <button class="nav-btn" onclick="switchView('entry')">📝 Record Lost Sales</button>
+    <button class="nav-btn" onclick="switchView('entry')">📝 Record OOS</button>
     <button class="nav-btn" onclick="switchView('consolidated')">📊 Dashboard</button>
   </div>
   <div class="header-actions">
-    <button class="logout-btn" id="logout-btn" onclick="logout()" style="display:none">🔓 Log Out</button>
     <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"><span id="theme-icon">🌙</span> Night</button>
     <button class="refresh-btn" onclick="loadEntries()">↻ Refresh</button>
   </div>
@@ -704,15 +701,6 @@
 <!-- ═══ APP ═══ -->
 <div id="app">
 
-  <!-- Session banner -->
-  <div id="session-banner">
-    <div class="session-info">
-      <span class="session-dot"></span>
-      <span>Logged in as <strong id="session-name-display"></strong> &nbsp;·&nbsp; <strong id="session-loc-display"></strong></span>
-    </div>
-    <span id="session-expiry-display" style="color:var(--text3);font-size:11px;font-family:var(--mono)"></span>
-  </div>
-
   <!-- Error bar -->
   <div id="error-bar">
     <span id="error-msg">⚠️ Error</span>
@@ -720,7 +708,7 @@
   </div>
 
   <!-- Filter bar -->
-  <div id="filter-bar" style="display:none">
+  <div id="filter-bar">
     <span class="filter-label">Filters:</span>
     <select class="fsel" id="filter-cat" onchange="applyFilters()">
       <option value="">All Categories</option>
@@ -806,84 +794,76 @@
 
   <!-- ═══ ENTRY VIEW ═══ -->
   <div id="entry-view">
-    <div class="card">
-      <div class="card-title">📝 Record Out-of-Stock Entry</div>
-
-      <div class="two-col">
-        <div class="field-group">
-          <label class="field-label">Location / Branch *</label>
-          <select class="field-input" id="f-location" onchange="onLocationChange()">
-            <option value="">— Select Location —</option>
-            <option value="Nairobi">Nairobi</option>
-            <option value="Nakuru">Nakuru</option>
-            <option value="Kisumu">Kisumu</option>
-            <option value="Mombasa">Mombasa</option>
-            <option value="Nanyuki">Nanyuki</option>
-            <option value="Sotik">Sotik</option>
-            <option value="Eldoret">Eldoret</option>
-            <option value="Nyahururu">Nyahururu</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label class="field-label">Date *</label>
-          <input type="date" class="field-input" id="f-date">
+    <div id="entry-card">
+      <div class="entry-card-header">
+        <div class="entry-card-heading">
+          <div class="entry-card-icon">📝</div>
+          <div>
+            <div class="entry-card-title">Record Out-of-Stock Entry</div>
+            <div class="entry-card-subtitle">Log a missed sale to track revenue impact</div>
+          </div>
         </div>
       </div>
 
-      <div class="field-group dd-wrap">
-        <label class="field-label">Product Code / Description *</label>
-        <input class="field-input" id="f-product-search" placeholder="Search by code or name..." autocomplete="off"
-          oninput="filterProducts()" onfocus="openDropdown()" onclick="openDropdown()">
-        <div id="product-dropdown">
-          <div style="padding:10px 14px;font-size:11px;color:var(--text3)">Type to search products...</div>
+      <div class="entry-card-body">
+        <div class="two-col">
+          <div class="field-group">
+            <label class="field-label">Location / Branch <span class="req">*</span></label>
+            <select class="field-input" id="f-location" onchange="onLocationChange()">
+              <option value="">— Select Location —</option>
+              <option value="Nairobi">Nairobi</option>
+              <option value="Nakuru">Nakuru</option>
+              <option value="Kisumu">Kisumu</option>
+              <option value="Mombasa">Mombasa</option>
+              <option value="Nanyuki">Nanyuki</option>
+              <option value="Sotik">Sotik</option>
+              <option value="Eldoret">Eldoret</option>
+              <option value="Nyahururu">Nyahururu</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Date <span class="req">*</span></label>
+            <input type="date" class="field-input" id="f-date">
+          </div>
         </div>
-      </div>
 
-      <div id="product-strip">
-        <div class="strip-item"><div class="si-label">Category</div><div class="si-value" id="si-cat">—</div></div>
-        <div class="strip-item"><div class="si-label">Packaging</div><div class="si-value" id="si-pkg">—</div></div>
-        <div class="strip-item"><div class="si-label">Weight</div><div class="si-value" id="si-wt">—</div></div>
-        <div class="strip-item"><div class="si-label">Unit Price</div><div class="si-value" id="si-price">—</div></div>
-      </div>
+        <div class="entry-status-row" id="entry-status-row"></div>
 
-      <div class="three-col">
-        <div class="field-group">
-          <label class="field-label">Quantity OOS *</label>
-          <input type="number" min="0" class="field-input" id="f-qty" placeholder="0" oninput="updateRevPreview()">
+        <div class="field-group dd-wrap">
+          <label class="field-label">Product Code / Description <span class="req">*</span></label>
+          <input class="field-input" id="f-product-search" placeholder="Search by code or name..." autocomplete="off"
+            oninput="filterProducts()" onfocus="openDropdown()" onclick="openDropdown()">
+          <div id="product-dropdown">
+            <div style="padding:10px 14px;font-size:11px;color:var(--text3)">Type to search products...</div>
+          </div>
         </div>
-        <div class="field-group">
-          <label class="field-label">Reason for Lost Sale *</label>
-          <input class="field-input" id="f-notes" placeholder="e.g. Supplier delay, overstock elsewhere...">
+
+        <div id="product-strip">
+          <div class="strip-item"><div class="si-label">Category</div><div class="si-value" id="si-cat">—</div></div>
+          <div class="strip-item"><div class="si-label">Packaging</div><div class="si-value" id="si-pkg">—</div></div>
+          <div class="strip-item"><div class="si-label">Weight</div><div class="si-value" id="si-wt">—</div></div>
+          <div class="strip-item"><div class="si-label">Unit Price</div><div class="si-value" id="si-price">—</div></div>
         </div>
-      </div>
 
-      <div id="rev-preview">
-        <div class="rev-label">⚠️ Estimated Revenue Lost</div>
-        <div class="rev-value" id="rev-val">KES 0</div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <button id="add-queue-btn" onclick="addToQueue()">➕ Add to Queue</button>
-        <button id="submit-all-btn" onclick="submitAll()" disabled>✓ Submit All <span id="queue-btn-count"></span></button>
-        <span id="save-feedback">✅ Successfully Submitted!</span>
-      </div>
-    </div>
-
-    <!-- Queue Panel (spans full entry-view width below form) -->
-    <div id="queue-panel" style="grid-column:1/-1">
-      <div class="queue-header">
-        <div class="queue-header-title">
-          🗂️ Pending Submissions
-          <span class="queue-count-badge" id="queue-count-badge">0</span>
+        <div class="three-col">
+          <div class="field-group">
+            <label class="field-label">Quantity OOS <span class="req">*</span></label>
+            <input type="number" min="0" class="field-input" id="f-qty" placeholder="0" oninput="updateRevPreview()">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Reason for Lost Sale <span class="req">*</span></label>
+            <input class="field-input" id="f-notes" placeholder="e.g. Supplier delay, overstock elsewhere...">
+          </div>
         </div>
-        <div class="queue-total">Total: <span id="queue-total-rev">KES 0</span></div>
-      </div>
-      <div class="queue-body" id="queue-body"></div>
-      <div class="queue-footer">
-        <span class="queue-footer-info">Review entries above, then click <strong>Submit All</strong> to post them to Google Sheets.</span>
-        <div style="display:flex;align-items:center">
-          <button id="submit-all-btn2" onclick="submitAll()" style="background:var(--green-dim);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-family:var(--sans);font-weight:600;font-size:13px;cursor:pointer;">✓ Submit All</button>
-          <span id="queue-submit-progress"></span>
+
+        <div id="rev-preview">
+          <div class="rev-label">⚠️ Estimated Revenue Lost</div>
+          <div class="rev-value" id="rev-val">KES 0</div>
+        </div>
+
+        <div class="entry-card-footer">
+          <span id="save-feedback">✅ Successfully Submitted!</span>
+          <button id="submit-btn" onclick="submitEntry()">✓ Submit Entry</button>
         </div>
       </div>
     </div>
@@ -896,11 +876,11 @@
         <div class="stat-sub">Revenue Lost: <em id="today-rev">KES 0</em></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:12px">Top Locations · This Month</div>
+        <div class="stat-label" style="margin-bottom:12px">Top Locations by OOS Value</div>
         <div id="loc-bars"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label" style="margin-bottom:12px">OOS by Category · This Month</div>
+        <div class="stat-label" style="margin-bottom:12px">OOS by Category</div>
         <div id="cat-mini"><div style="color:var(--text3);font-size:12px">No data yet</div></div>
       </div>
     </div>
@@ -953,6 +933,16 @@
       <div class="sumcard">
         <div><div class="sumcard-label">Categories Affected</div><div class="sumcard-val" id="sc-cats" style="color:var(--amber)">0</div></div>
         <div class="sumcard-icon">🗂️</div>
+      </div>
+    </div>
+
+    <div class="card" id="supervisor-card">
+      <div class="sup-card-head">
+        <div class="card-title" style="margin-bottom:0">🧑‍💼 Supervisor Activity</div>
+        <span class="sup-card-period" id="sup-card-period">—</span>
+      </div>
+      <div class="sup-list" id="sup-list">
+        <div style="color:var(--text3);font-size:12px">No data yet</div>
       </div>
     </div>
 
@@ -1148,10 +1138,6 @@ let selectedProduct = null;
 let currentView = 'entry';
 let unlockedLocation = null;
 let unlockedName = '';
-let pendingEntries = [];   // batch queue
-
-const SESSION_KEY = 'oos_session';
-const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 hours in ms
 
 // ═══════════════════════════════════════════════════
 //  HELPERS
@@ -1172,71 +1158,15 @@ function setSyncing(on,msg=''){
 }
 
 // ═══════════════════════════════════════════════════
-//  SESSION PERSISTENCE
-// ═══════════════════════════════════════════════════
-function saveSession(loc, name){
-  // Session is memory-only — intentionally not persisted across page refreshes
-}
-
-function clearSession(){
-  // No-op: nothing stored in localStorage for session
-}
-
-function restoreSession(){
-  // Deliberately does NOT restore on refresh — user must log in again each visit
-}
-
-function updateSessionBanner(){
-  const banner = document.getElementById('session-banner');
-  const logoutBtn = document.getElementById('logout-btn');
-  if(!banner) return;
-  if(unlockedLocation && unlockedName){
-    document.getElementById('session-name-display').textContent = unlockedName;
-    document.getElementById('session-loc-display').textContent = unlockedLocation;
-    document.getElementById('session-expiry-display').textContent = '';
-    banner.classList.add('show');
-    if(logoutBtn) logoutBtn.style.display = 'flex';
-  } else {
-    banner.classList.remove('show');
-    if(logoutBtn) logoutBtn.style.display = 'none';
-  }
-}
-
-function logout(){
-  if(pendingEntries.length > 0){
-    if(!confirm(`You have ${pendingEntries.length} unsent item(s) in the queue. Logging out will discard them. Continue?`)) return;
-  }
-  unlockedLocation = null;
-  unlockedName = '';
-  pendingEntries = [];
-  clearSession();
-  document.getElementById('f-location').value = '';
-  updateLockBadge();
-  updateSessionBanner();
-  renderQueue();
-}
-
-// ═══════════════════════════════════════════════════
 //  PASSWORD GATE
 // ═══════════════════════════════════════════════════
 function onLocationChange(){
   const loc = document.getElementById('f-location').value;
-  if(!loc){ unlockedLocation=null; unlockedName=''; clearSession(); updateLockBadge(); updateSessionBanner(); return; }
+  if(!loc){ unlockedLocation=null; unlockedName=''; updateLockBadge(); return; }
   if(unlockedLocation === loc) return;
-  // Switching location — warn if queue has items
-  if(pendingEntries.length > 0){
-    if(!confirm(`You have ${pendingEntries.length} item(s) in the queue for ${unlockedLocation}. Switching location will clear the queue. Continue?`)){
-      document.getElementById('f-location').value = unlockedLocation || '';
-      return;
-    }
-    pendingEntries = [];
-    renderQueue();
-  }
   unlockedLocation = null;
   unlockedName = '';
-  clearSession();
   updateLockBadge();
-  updateSessionBanner();
   document.getElementById('pwd-loc-name').textContent = loc;
   document.getElementById('pwd-name').value = '';
   document.getElementById('pwd-input').value = '';
@@ -1258,11 +1188,9 @@ function checkPassword(){
   if(entered === LOCATION_PASSWORDS[loc]){
     unlockedLocation = loc;
     unlockedName = name;
-    saveSession(loc, name);
     document.getElementById('pwd-overlay').classList.remove('show');
     document.getElementById('pwd-error').textContent = '';
     updateLockBadge();
-    updateSessionBanner();
   } else {
     document.getElementById('pwd-error').textContent = '❌ Incorrect password. Please try again.';
     document.getElementById('pwd-input').value = '';
@@ -1275,21 +1203,22 @@ function cancelPassword(){
   document.getElementById('pwd-overlay').classList.remove('show');
   unlockedLocation = null;
   unlockedName = '';
-  clearSession();
   updateLockBadge();
-  updateSessionBanner();
 }
 
 function updateLockBadge(){
   const existing = document.getElementById('loc-unlock-badge');
   if(existing) existing.remove();
+  const statusRow = document.getElementById('entry-status-row');
   if(unlockedLocation){
     const badge = document.createElement('span');
     badge.id = 'loc-unlock-badge';
     badge.className = 'loc-unlocked-badge';
-    badge.innerHTML = '🔓 ' + esc(unlockedLocation) + ' unlocked'
+    badge.innerHTML = '<span class="badge-dot"></span>' + esc(unlockedLocation) + ' unlocked'
       + (unlockedName ? `<span class="badge-name">👤 ${esc(unlockedName)}</span>` : '');
-    document.getElementById('f-location').after(badge);
+    if(statusRow){ statusRow.innerHTML=''; statusRow.appendChild(badge); }
+  } else if(statusRow){
+    statusRow.innerHTML = '';
   }
 }
 
@@ -1352,8 +1281,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
   populateCatFilter();
   loadEntries();
   startAutoSync();
-  // Session is NOT restored on refresh — user must log in each visit
-  renderQueue();
   document.addEventListener('click', e=>{
     if(!e.target.closest('.dd-wrap')) closeDropdown();
   });
@@ -1365,16 +1292,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('pwd-input').addEventListener('keydown', e=>{
     if(e.key==='Enter') checkPassword();
   });
-});
-
-// Warn before refresh/close if there are unsent items in the queue
-window.addEventListener('beforeunload', e=>{
-  if(pendingEntries.length > 0){
-    const msg = `You have ${pendingEntries.length} unsent item(s) in your queue. Refreshing will lose this data. Submit first or click Cancel to go back.`;
-    e.preventDefault();
-    e.returnValue = msg; // Required for Chrome
-    return msg;
-  }
 });
 
 // ═══════════════════════════════════════════════════
@@ -1498,14 +1415,10 @@ function applyFilters(){
   if(noteEl){ const d = exportScope==='all'?allEntries:filteredEntries; noteEl.textContent='('+d.length+' records)'; }
 }
 function clearFilters(){
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth()+1).padStart(2,'0');
-  const lastDay = new Date(y, now.getMonth()+1, 0).getDate();
   document.getElementById('filter-cat').value='';
   document.getElementById('filter-loc').value='';
-  document.getElementById('filter-date-from').value=`${y}-${m}-01`;
-  document.getElementById('filter-date-to').value=`${y}-${m}-${String(lastDay).padStart(2,'0')}`;
+  document.getElementById('filter-date-from').value='';
+  document.getElementById('filter-date-to').value='';
   applyFilters();
 }
 
@@ -1520,24 +1433,9 @@ function switchView(v){
   document.getElementById('records-view').style.display = 'none';
   document.getElementById('export-section').style.display = v === 'consolidated' ? 'block' : 'none';
   document.getElementById('remarks-analysis').style.display = v === 'consolidated' ? 'grid' : 'none';
-  document.getElementById('filter-bar').style.display = v === 'consolidated' ? 'flex' : 'none';
   document.querySelectorAll('.nav-btn').forEach((b,i)=>{
     b.classList.toggle('active',['entry','consolidated'][i]===v);
   });
-  // Default dashboard to current month if no date filter is set
-  if(v === 'consolidated'){
-    const dateFrom = document.getElementById('filter-date-from');
-    const dateTo   = document.getElementById('filter-date-to');
-    if(!dateFrom.value && !dateTo.value){
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth()+1).padStart(2,'0');
-      const lastDay = new Date(y, now.getMonth()+1, 0).getDate();
-      dateFrom.value = `${y}-${m}-01`;
-      dateTo.value   = `${y}-${m}-${String(lastDay).padStart(2,'0')}`;
-      applyFilters();
-    }
-  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -1593,20 +1491,25 @@ function updateRevPreview(){
 }
 
 // ═══════════════════════════════════════════════════
-//  QUEUE MANAGEMENT
+//  SUBMIT ENTRY
 // ═══════════════════════════════════════════════════
-function addToQueue(){
+async function submitEntry(){
   const loc = document.getElementById('f-location').value;
   const date = document.getElementById('f-date').value;
   const qty = parseFloat(document.getElementById('f-qty').value);
   const notes = document.getElementById('f-notes').value.trim();
   if(!loc||!selectedProduct||!qty||!notes){ showError('Please fill in Location, Product, Quantity and Reason for Lost Sale'); return; }
   if(unlockedLocation !== loc){
-    showError('Please unlock ' + loc + ' with the correct password first.');
-    onLocationChange(); return;
+    showError('Please unlock ' + loc + ' with the correct password before submitting.');
+    document.getElementById('f-location').value = loc;
+    onLocationChange();
+    return;
   }
-  pendingEntries.push({
-    date, location: loc,
+  const btn = document.getElementById('submit-btn');
+  btn.disabled=true; btn.textContent='⟳ Saving...';
+  hideError();
+  const payload = {
+    date, location:loc,
     recordedBy: unlockedName,
     productCode: selectedProduct.code,
     description: selectedProduct.desc,
@@ -1614,123 +1517,40 @@ function addToQueue(){
     packaging: selectedProduct.pkg,
     weight: selectedProduct.wt,
     price: selectedProduct.price,
-    qty, revenue: selectedProduct.price * qty,
-    notes,
-    _id: Date.now() + Math.random()
-  });
-  // Reset only product/qty/notes — keep location + date locked
-  selectedProduct = null;
-  document.getElementById('f-product-search').value = '';
-  document.getElementById('f-qty').value = '';
-  document.getElementById('f-notes').value = '';
-  document.getElementById('product-strip').classList.remove('show');
-  document.getElementById('rev-preview').classList.remove('show');
-  hideError();
-  renderQueue();
-  document.getElementById('f-product-search').focus();
-}
-
-function removeFromQueue(id){
-  pendingEntries = pendingEntries.filter(e => e._id !== id);
-  renderQueue();
-}
-
-function renderQueue(){
-  const panel = document.getElementById('queue-panel');
-  const body = document.getElementById('queue-body');
-  const badge = document.getElementById('queue-count-badge');
-  const totalRev = document.getElementById('queue-total-rev');
-  const submitAllBtn = document.getElementById('submit-all-btn');
-  const btnCount = document.getElementById('queue-btn-count');
-
-  if(!pendingEntries.length){
-    panel.classList.remove('show');
-    if(submitAllBtn){ submitAllBtn.disabled = true; btnCount.textContent = ''; }
-    return;
-  }
-
-  panel.classList.add('show');
-  const total = pendingEntries.reduce((s,e)=>s+e.revenue, 0);
-  badge.textContent = pendingEntries.length;
-  totalRev.textContent = fmt(total);
-  if(submitAllBtn){ submitAllBtn.disabled = false; btnCount.textContent = `(${pendingEntries.length})`; }
-
-  body.innerHTML = pendingEntries.map(e => `
-    <div class="queue-row">
-      <div>
-        <div class="queue-row-desc">${esc(e.description)}</div>
-        <div class="queue-row-sub">[${esc(e.productCode)}] · ${esc(e.packaging)} · ${esc(e.date)}</div>
-        <div class="queue-row-note">💬 ${esc(e.notes)}</div>
-      </div>
-      <div class="queue-row-cat">${catBadge(e.category)}</div>
-      <div class="queue-row-qty">${fmtInt(e.qty)}</div>
-      <div class="queue-row-rev">${fmt(e.revenue)}</div>
-      <button class="queue-remove-btn" onclick="removeFromQueue(${e._id})" title="Remove">✕</button>
-    </div>`).join('');
-}
-
-async function submitAll(){
-  if(!pendingEntries.length){ showError('Queue is empty — add items first.'); return; }
-  const allBtn  = document.getElementById('submit-all-btn');
-  const allBtn2 = document.getElementById('submit-all-btn2');
-  const progress = document.getElementById('queue-submit-progress');
-  const addBtn  = document.getElementById('add-queue-btn');
-  [allBtn, allBtn2, addBtn].forEach(b=>{ if(b) b.disabled = true; });
-  hideError();
-
-  const toSend = [...pendingEntries];
-  const total  = toSend.length;
-  if(progress) progress.textContent = `Sending ${total} entr${total===1?'y':'ies'}...`;
-
-  // Fire ALL requests simultaneously — no waiting for one to finish before starting the next
-  const postEntry = entry => fetch(APPS_SCRIPT_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      date: entry.date, location: entry.location,
-      recordedBy: entry.recordedBy,
-      productCode: entry.productCode,
-      description: entry.description,
-      category: entry.category,
-      packaging: entry.packaging,
-      weight: entry.weight,
-      price: entry.price,
-      qty: entry.qty,
-      revenue: entry.revenue,
-      notes: entry.notes
-    })
-  });
-
-  const results = await Promise.allSettled(toSend.map(postEntry));
-
-  const succeeded = results.filter(r => r.status === 'fulfilled').length;
-  const failed    = results.filter(r => r.status === 'rejected').length;
-
-  // Clear successfully-sent entries from queue
-  results.forEach((r, i) => {
-    if(r.status === 'fulfilled')
-      pendingEntries = pendingEntries.filter(e => e._id !== toSend[i]._id);
-  });
-
-  if(progress) progress.textContent = '';
-  [allBtn, allBtn2, addBtn].forEach(b=>{ if(b) b.disabled = false; });
-
-  if(failed > 0) showError(`${failed} entr${failed===1?'y':'ies'} failed to send — check your connection and try again.`);
-
-  if(succeeded > 0){
+    qty, revenue: selectedProduct.price*qty, notes
+  };
+  try{
+    // Apps Script POST using no-cors mode
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    
+    // POST succeeded (no-cors never throws unless truly offline)
+    selectedProduct=null;
+    document.getElementById('f-product-search').value='';
+    document.getElementById('f-qty').value='';
+    document.getElementById('f-notes').value='';
+    document.getElementById('product-strip').classList.remove('show');
+    document.getElementById('rev-preview').classList.remove('show');
     const fb = document.getElementById('save-feedback');
-    fb.textContent = `✅ ${succeeded} entr${succeeded===1?'y':'ies'} submitted!`;
+    fb.textContent = '✅ Successfully Submitted!';
     fb.classList.add('show');
-    setTimeout(()=>{ fb.classList.remove('show'); }, 4000);
-    renderQueue();
+    setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully Submitted!'; }, 3000);
+    unlockedLocation = null;
+    unlockedName = '';
+    document.getElementById('f-location').value = '';
+    updateLockBadge();
+    // Small delay then reload to reflect saved entry
     setTimeout(()=> loadEntries(), 1500);
+  } catch(e){
+    showError('Network error — please check your internet connection and try again.');
+  } finally {
+    btn.disabled=false; btn.textContent='✓ Submit';
   }
 }
-
-// ═══════════════════════════════════════════════════
-//  LEGACY SUBMIT (kept for compatibility, redirects to queue)
-// ═══════════════════════════════════════════════════
-function submitEntry(){ addToQueue(); }
 
 // ═══════════════════════════════════════════════════
 //  DELETE
@@ -1781,6 +1601,58 @@ function renderTable(){
 }
 
 // ═══════════════════════════════════════════════════
+//  SUPERVISOR ACTIVITY (current month)
+// ═══════════════════════════════════════════════════
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function renderSupervisorActivity(){
+  const listEl = document.getElementById('sup-list');
+  const periodEl = document.getElementById('sup-card-period');
+  if(!listEl || !periodEl) return;
+
+  const monthKey = today().slice(0,7); // YYYY-MM
+  const [y,m] = monthKey.split('-').map(Number);
+  periodEl.textContent = `${MONTH_NAMES[m-1]} ${y}`;
+
+  const monthEntries = allEntries.filter(e => e.date && e.date.slice(0,7)===monthKey && e.recordedBy && e.recordedBy.trim()!=='');
+
+  if(!monthEntries.length){
+    listEl.innerHTML = '<div style="color:var(--text3);font-size:12px">No supervisor activity recorded this month</div>';
+    return;
+  }
+
+  const bySup = {};
+  monthEntries.forEach(e=>{
+    const name = e.recordedBy.trim();
+    if(!bySup[name]) bySup[name] = { days:new Set(), locations:new Set(), entries:0 };
+    bySup[name].days.add(e.date);
+    bySup[name].locations.add(e.location);
+    bySup[name].entries++;
+  });
+
+  const daysSoFarInMonth = (()=>{
+    const t = today();
+    return t.slice(0,7)===monthKey ? Number(t.slice(8,10)) : 31;
+  })();
+
+  const sorted = Object.entries(bySup).sort((a,b)=> b[1].days.size - a[1].days.size);
+
+  listEl.innerHTML = sorted.map(([name,d])=>{
+    const initials = name.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+    const dayCount = d.days.size;
+    const pct = Math.min(100, ((dayCount/daysSoFarInMonth)*100)).toFixed(0);
+    const locList = [...d.locations].sort().join(', ');
+    return `
+      <div class="sup-row">
+        <div class="sup-avatar">${esc(initials)}</div>
+        <div class="sup-name">${esc(name)}<span class="sup-loc-list">${esc(locList)}</span></div>
+        <div class="sup-days-track"><div class="sup-days-fill" style="width:${pct}%"></div></div>
+        <div class="sup-days-val">${dayCount} day${dayCount===1?'':'s'}<br><small>${fmtInt(d.entries)} entries</small></div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
 //  RENDER CONSOLIDATED
 // ═══════════════════════════════════════════════════
 function renderConsolidated(){
@@ -1797,6 +1669,8 @@ function renderConsolidated(){
   document.getElementById('sc-rev').textContent=fmt(total);
   document.getElementById('sc-locs').textContent=fmtInt(locs.length);
   document.getElementById('sc-cats').textContent=fmtInt(cats.length);
+
+  renderSupervisorActivity();
 
   const locEl=document.getElementById('loc-breakdown');
   if(!locs.length){ locEl.innerHTML='<div style="color:var(--text3);font-size:12px">No data</div>'; }
@@ -2030,18 +1904,11 @@ function fmtInt(n) {
 // ═══════════════════════════════════════════════════
 function updateSideStats(){
   const td = today();
-  const thisMonth = td.slice(0, 7); // "YYYY-MM"
-
-  // Today's entries (unchanged)
   const todayE = allEntries.filter(e=>e.date===td);
   document.getElementById('today-count').textContent=fmtInt(todayE.length);
   document.getElementById('today-rev').textContent=fmt(todayE.reduce((s,e)=>s+e.revenue,0));
-
-  // Current-month entries only for the side charts
-  const monthEntries = allEntries.filter(e => e.date && e.date.slice(0,7) === thisMonth);
-
   const byLoc={}, byCat={};
-  monthEntries.forEach(e=>{
+  allEntries.forEach(e=>{
     byLoc[e.location]=(byLoc[e.location]||0)+e.revenue;
     byCat[e.category]=(byCat[e.category]||0)+e.revenue;
   });
@@ -2052,13 +1919,13 @@ function updateSideStats(){
     <div class="bar-item">
       <div class="bar-head"><span style="font-size:11px">${esc(l)}</span><span style="font-family:var(--mono);font-size:11px;color:var(--red)">${fmt(v)}</span></div>
       <div class="bar-track"><div class="bar-fill" style="width:${((v/maxLoc)*100).toFixed(1)}%"></div></div>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data this month</div>';
+    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
   const catEl=document.getElementById('cat-mini');
   const catSorted=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,7);
   catEl.innerHTML=catSorted.length?catSorted.map(([cat,v])=>`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:11px">
       ${catBadge(cat)}<span style="font-family:var(--mono)">${fmt(v)}</span>
-    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data this month</div>';
+    </div>`).join(''):'<div style="color:var(--text3);font-size:12px">No data yet</div>';
   
   // Update remarks analysis
   updateRemarksAnalysis();
