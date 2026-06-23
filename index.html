@@ -324,6 +324,7 @@
     padding: 10px 12px; animation: feedIn .25s ease;
   }
   .feed-item.is-new { border-color: var(--green-dim); box-shadow: 0 0 0 1px var(--green-glow); }
+  .feed-item.is-queued { border-color: var(--amber); box-shadow: 0 0 0 1px rgba(251,191,36,0.2); background: rgba(251,191,36,0.05); }
   @keyframes feedIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
   .feed-item-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
   .feed-item-desc { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; }
@@ -1522,6 +1523,9 @@ function addToQueue(){
   
   entryQueue.push(entry);
   
+  // Also add to feed immediately (marked as queued & optimistic)
+  myFeedLocal.unshift({ ...entry, _optimistic:true, _queued:true, timestamp:new Date().toISOString() });
+  
   // Clear form
   selectedProduct=null;
   document.getElementById('f-product-search').value='';
@@ -1537,6 +1541,7 @@ function addToQueue(){
   setTimeout(()=>{ fb.classList.remove('show'); }, 2000);
   
   renderQueue();
+  renderMyFeed(); // Update the MY SUBMISSIONS feed
 }
 
 function renderQueue(){
@@ -1579,8 +1584,13 @@ function renderQueue(){
 }
 
 function removeFromQueue(index){
-  entryQueue.splice(index, 1);
+  const removed = entryQueue.splice(index, 1)[0];
+  
+  // Also remove from myFeedLocal to avoid duplicates
+  myFeedLocal = myFeedLocal.filter(e => e.id !== removed.id);
+  
   renderQueue();
+  renderMyFeed(); // Update the MY SUBMISSIONS feed
 }
 
 async function submitAllEntries(){
@@ -1592,6 +1602,7 @@ async function submitAllEntries(){
   
   let successCount = 0;
   let failCount = 0;
+  const failedEntries = [];
   
   for(const entry of entryQueue){
     try{
@@ -1602,16 +1613,25 @@ async function submitAllEntries(){
         body: JSON.stringify(entry)
       });
       successCount++;
-      myFeedLocal.unshift({ ...entry, _optimistic:true, timestamp:new Date().toISOString() });
+      // Mark as submitted (remove queued flag)
+      const feedItem = myFeedLocal.find(e => e.id === entry.id);
+      if(feedItem) feedItem._queued = false;
     } catch(e){
       failCount++;
+      failedEntries.push(entry.id);
       console.error('Failed to submit entry:', e);
     }
   }
   
-  // Clear queue
-  entryQueue = [];
+  // Clear queue only if all succeeded, otherwise keep failed items
+  if(failCount === 0){
+    entryQueue = [];
+  } else {
+    entryQueue = entryQueue.filter(e => failedEntries.includes(e.id));
+  }
+  
   renderQueue();
+  renderMyFeed();
   
   // Show feedback
   const fb = document.getElementById('save-feedback');
@@ -1623,11 +1643,12 @@ async function submitAllEntries(){
   fb.classList.add('show');
   setTimeout(()=>{ fb.classList.remove('show'); }, 3000);
   
-  unlockedLocation = null;
-  unlockedName = '';
-  document.getElementById('f-location').value = '';
-  updateLockBadge();
-  renderMyFeed();
+  if(failCount === 0){
+    unlockedLocation = null;
+    unlockedName = '';
+    document.getElementById('f-location').value = '';
+    updateLockBadge();
+  }
   
   // Reload to reflect saved entries
   setTimeout(()=> loadEntries(), 1500);
@@ -2041,7 +2062,7 @@ function renderMyFeed(){
   summaryEl.innerHTML = `${fmtInt(combined.length)} product${combined.length===1?'':'s'} logged · Revenue Lost: <em>${fmt(totalRev)}</em>`;
 
   listEl.innerHTML = combined.map((e,i)=>`
-    <div class="feed-item${e._optimistic?' is-new':''}">
+    <div class="feed-item${e._optimistic?' is-new':''}${e._queued?' is-queued':''}">
       <div class="feed-item-top">
         <span class="feed-item-desc">${esc(e.description||e.productCode||'—')}</span>
         <span class="feed-item-rev">${fmt(e.revenue)}</span>
@@ -2049,7 +2070,7 @@ function renderMyFeed(){
       <div class="feed-item-meta">
         <span>${esc(e.location)}</span><span class="dot"></span>
         <span>Qty ${fmtInt(e.qty)}</span><span class="dot"></span>
-        <span class="feed-item-time">${e._optimistic ? 'just now' : timeAgo(e.timestamp)}</span>
+        <span class="feed-item-time">${e._queued ? '⏳ queued' : e._optimistic ? 'just now' : timeAgo(e.timestamp)}</span>
       </div>
       ${e.notes?`<div class="feed-item-note">"${esc(e.notes)}"</div>`:''}
     </div>`).join('');
