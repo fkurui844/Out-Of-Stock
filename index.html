@@ -171,6 +171,26 @@
   .entry-card-subtitle { font-size: 11.5px; color: var(--text3); margin-top: 2px; }
   .entry-card-body { padding: 22px; }
 
+  /* ── ENTRY QUEUE ── */
+  #entry-queue { max-height: 400px; overflow-y: auto; background: var(--bg3); border-radius: 8px; padding: 12px; margin-bottom: 16px; display: none; border: 1px solid var(--border2); }
+  #entry-queue.show { display: block; }
+  .queue-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; }
+  .queue-item { background: var(--bg2); border: 1px solid var(--border2); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .queue-item-left { flex: 1; }
+  .queue-item-desc { font-weight: 500; color: var(--text); }
+  .queue-item-meta { font-size: 11px; color: var(--text2); margin-top: 3px; }
+  .queue-item-remove { background: none; border: none; color: var(--text3); cursor: pointer; padding: 2px 6px; transition: color .15s; font-size: 13px; }
+  .queue-item-remove:hover { color: var(--red); }
+  
+  .btn-group { display: flex; gap: 10px; }
+  #submit-btn { flex: 1; }
+  #add-btn { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); padding: 11px 14px; border-radius: 9px; cursor: pointer; font-family: var(--sans); font-size: 13.5px; transition: all .15s; font-weight: 500; }
+  #add-btn:hover:not(:disabled) { border-color: var(--green-dim); color: var(--green); }
+  #add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  #batch-info { font-size: 11px; color: var(--text3); padding: 10px 12px; background: var(--green-glow); border: 1px solid var(--green-dim); border-radius: 6px; margin-bottom: 16px; display: none; }
+  #batch-info.show { display: block; }
+  
   .field-group { margin-bottom: 18px; }
   .field-label {
     font-size: 10.5px; font-weight: 600; color: var(--text3); text-transform: uppercase;
@@ -802,9 +822,21 @@
           <div class="rev-value" id="rev-val">KES 0</div>
         </div>
 
+        <div id="batch-info">
+          <strong id="batch-count">0</strong> product<span id="batch-plural">s</span> queued · Total Revenue Lost: <strong id="batch-revenue">KES 0</strong>
+        </div>
+
+        <div id="entry-queue">
+          <div class="queue-title">📋 Queued Entries</div>
+          <div id="queue-list"></div>
+        </div>
+
         <div class="entry-card-footer">
           <span id="save-feedback">✅ Successfully Submitted!</span>
-          <button id="submit-btn" onclick="submitEntry()">✓ Submit Entry</button>
+          <div class="btn-group">
+            <button id="add-btn" onclick="addToQueue()">+ Add Product</button>
+            <button id="submit-btn" onclick="submitAllEntries()" style="display:none">✓ Submit All</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1081,6 +1113,7 @@ let unlockedLocation = null;
 let unlockedName = '';
 let sessionSupervisorName = ''; // persists across submits within this browser session, for the "My Submissions" feed
 let myFeedLocal = []; // optimistic just-submitted entries, shown until the server sync catches up
+let entryQueue = []; // batch entry queue
 
 // ═══════════════════════════════════════════════════
 //  HELPERS
@@ -1455,24 +1488,27 @@ function updateRevPreview(){
 }
 
 // ═══════════════════════════════════════════════════
-//  SUBMIT ENTRY
+//  BATCH ENTRY QUEUE
 // ═══════════════════════════════════════════════════
-async function submitEntry(){
+function addToQueue(){
   const loc = document.getElementById('f-location').value;
   const date = document.getElementById('f-date').value;
   const qty = parseFloat(document.getElementById('f-qty').value);
   const notes = document.getElementById('f-notes').value.trim();
-  if(!loc||!selectedProduct||!qty||!notes){ showError('Please fill in Location, Product, Quantity and Reason for Lost Sale'); return; }
+  if(!loc||!selectedProduct||!qty||!notes){ 
+    showError('Please fill in Location, Product, Quantity and Reason for Lost Sale'); 
+    return; 
+  }
   if(unlockedLocation !== loc){
     showError('Please unlock ' + loc + ' with the correct password before submitting.');
     document.getElementById('f-location').value = loc;
     onLocationChange();
     return;
   }
-  const btn = document.getElementById('submit-btn');
-  btn.disabled=true; btn.textContent='⟳ Saving...';
   hideError();
-  const payload = {
+  
+  const entry = {
+    id: Date.now() + Math.random(),
     date, location:loc,
     recordedBy: unlockedName,
     productCode: selectedProduct.code,
@@ -1483,39 +1519,120 @@ async function submitEntry(){
     price: selectedProduct.price,
     qty, revenue: selectedProduct.price*qty, notes
   };
-  try{
-    // Apps Script POST using no-cors mode
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    });
-    
-    // POST succeeded (no-cors never throws unless truly offline)
-    myFeedLocal.unshift({ ...payload, _optimistic:true, timestamp:new Date().toISOString() });
-    selectedProduct=null;
-    document.getElementById('f-product-search').value='';
-    document.getElementById('f-qty').value='';
-    document.getElementById('f-notes').value='';
-    document.getElementById('product-strip').classList.remove('show');
-    document.getElementById('rev-preview').classList.remove('show');
-    const fb = document.getElementById('save-feedback');
-    fb.textContent = '✅ Successfully Submitted!';
-    fb.classList.add('show');
-    setTimeout(()=>{ fb.classList.remove('show'); fb.textContent='✅ Successfully Submitted!'; }, 3000);
-    unlockedLocation = null;
-    unlockedName = '';
-    document.getElementById('f-location').value = '';
-    updateLockBadge();
-    renderMyFeed();
-    // Small delay then reload to reflect saved entry
-    setTimeout(()=> loadEntries(), 1500);
-  } catch(e){
-    showError('Network error — please check your internet connection and try again.');
-  } finally {
-    btn.disabled=false; btn.textContent='✓ Submit Entry';
+  
+  entryQueue.push(entry);
+  
+  // Clear form
+  selectedProduct=null;
+  document.getElementById('f-product-search').value='';
+  document.getElementById('f-qty').value='';
+  document.getElementById('f-notes').value='';
+  document.getElementById('product-strip').classList.remove('show');
+  document.getElementById('rev-preview').classList.remove('show');
+  
+  // Show success feedback
+  const fb = document.getElementById('save-feedback');
+  fb.textContent = '✅ Added to queue!';
+  fb.classList.add('show');
+  setTimeout(()=>{ fb.classList.remove('show'); }, 2000);
+  
+  renderQueue();
+}
+
+function renderQueue(){
+  const queueEl = document.getElementById('entry-queue');
+  const listEl = document.getElementById('queue-list');
+  const batchInfo = document.getElementById('batch-info');
+  const addBtn = document.getElementById('add-btn');
+  const submitBtn = document.getElementById('submit-btn');
+  
+  if(!entryQueue.length){
+    queueEl.classList.remove('show');
+    batchInfo.classList.remove('show');
+    addBtn.style.display = 'block';
+    submitBtn.style.display = 'none';
+    return;
   }
+  
+  queueEl.classList.add('show');
+  batchInfo.classList.add('show');
+  addBtn.style.display = 'block';
+  submitBtn.style.display = 'block';
+  
+  // Update batch info
+  const totalQty = entryQueue.reduce((s,e)=>s+e.qty, 0);
+  const totalRev = entryQueue.reduce((s,e)=>s+e.revenue, 0);
+  document.getElementById('batch-count').textContent = entryQueue.length;
+  document.getElementById('batch-plural').textContent = entryQueue.length === 1 ? '' : 's';
+  document.getElementById('batch-revenue').textContent = fmt(totalRev);
+  
+  // Render queue items
+  listEl.innerHTML = entryQueue.map((e, i) => `
+    <div class="queue-item">
+      <div class="queue-item-left">
+        <div class="queue-item-desc">${esc(e.description)}</div>
+        <div class="queue-item-meta">[${esc(e.productCode)}] · ${esc(e.location)} · Qty: ${fmtInt(e.qty)} · ${fmt(e.revenue)}</div>
+      </div>
+      <button class="queue-item-remove" onclick="removeFromQueue(${i})" title="Remove from queue">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeFromQueue(index){
+  entryQueue.splice(index, 1);
+  renderQueue();
+}
+
+async function submitAllEntries(){
+  if(!entryQueue.length){ showError('No entries to submit'); return; }
+  
+  const btn = document.getElementById('submit-btn');
+  btn.disabled=true; btn.textContent='⟳ Submitting...';
+  hideError();
+  
+  let successCount = 0;
+  let failCount = 0;
+  
+  for(const entry of entryQueue){
+    try{
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(entry)
+      });
+      successCount++;
+      myFeedLocal.unshift({ ...entry, _optimistic:true, timestamp:new Date().toISOString() });
+    } catch(e){
+      failCount++;
+      console.error('Failed to submit entry:', e);
+    }
+  }
+  
+  // Clear queue
+  entryQueue = [];
+  renderQueue();
+  
+  // Show feedback
+  const fb = document.getElementById('save-feedback');
+  if(failCount === 0){
+    fb.textContent = `✅ Successfully submitted ${successCount} entries!`;
+  } else {
+    fb.textContent = `⚠️ Submitted ${successCount}, failed ${failCount}`;
+  }
+  fb.classList.add('show');
+  setTimeout(()=>{ fb.classList.remove('show'); }, 3000);
+  
+  unlockedLocation = null;
+  unlockedName = '';
+  document.getElementById('f-location').value = '';
+  updateLockBadge();
+  renderMyFeed();
+  
+  // Reload to reflect saved entries
+  setTimeout(()=> loadEntries(), 1500);
+  
+  btn.disabled=false; btn.textContent='✓ Submit All';
 }
 
 // ═══════════════════════════════════════════════════
