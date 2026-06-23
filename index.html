@@ -649,6 +649,384 @@
     color: var(--text); font-weight: 500; border-left: 1px solid var(--green-dim);
     padding-left: 8px; margin-left: 1px; display: flex; align-items: center; gap: 4px;
   }
+
+  /* ═══════════════════════════════════════════════════════════
+     MOBILE RESPONSIVE STYLES
+     ═══════════════════════════════════════════════════════════ */
+
+  @media (max-width: 1024px) {
+    #entry-view { grid-template-columns: 1fr; gap: 16px; }
+  }
+
+  @media (max-width: 768px) {
+    /* ── HEADER ── */
+    #header {
+      padding: 0 12px;
+      height: 52px;
+    }
+    .logo-text { font-size: 13px; }
+    .logo-sub { font-size: 9px; }
+    .nav-tabs { gap: 2px; }
+    .nav-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    .theme-toggle, .refresh-btn {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    /* ── LAYOUT ── */
+    html { font-size: 13px; }
+    #app { padding: 12px; }
+
+    /* ── FILTER BAR ── */
+    #filter-bar {
+      gap: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .filter-label { font-size: 9px; }
+    select.fsel, input.fsel {
+      padding: 6px 8px;
+      font-size: 11px;
+      border-radius: 5px;
+    }
+    .filter-summary {
+      margin-left: 0;
+      font-size: 11px;
+      width: 100%;
+      margin-top: 4px;
+      order: 10;
+    }
+    .clear-btn {
+      padding: 4px 10px;
+      font-size: 10px;
+    }
+
+    /* ── ENTRY VIEW ── */
+    #entry-view { 
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #entry-card {
+      border-radius: 10px;
+      padding: 0;
+    }
+    .entry-card-header {
+      padding: 14px 16px;
+      gap: 8px;
+    }
+    .entry-card-icon {
+      width: 30px;
+      height: 30px;
+      font-size: 14px;
+      border-radius: 7px;
+    }
+    .entry-card-title { 
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .entry-card-subtitle { 
+      font-size: 10px;
+    }
+    .entry-card-body { 
+      padding: 16px;
+    }
+
+    /* ── FORM FIELDS ── */
+    .field-group { margin-bottom: 14px; }
+    .field-label {
+      font-size: 9.5px;
+      margin-bottom: 6px;
+    }
+    .field-input {
+      padding: 10px 12px;
+      font-size: 13px;
+      border-radius: 8px;
+      min-height: 44px;
+    }
+    select.field-input {
+      min-height: 44px;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .three-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    /* ── PRODUCT DROPDOWN ── */
+    #product-dropdown {
+      max-height: 200px;
+    }
+    .dd-item {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+    .dd-code { font-size: 11px; }
+    .dd-desc { font-size: 12px; }
+    .dd-price { font-size: 11px; }
+
+    /* ── PRODUCT STRIP ── */
+    #product-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 7px;
+    }
+    .strip-item {
+      padding: 8px;
+    }
+    .si-label { font-size: 9px; }
+    .si-value { font-size: 11px; }
+
+    /* ── REVENUE PREVIEW ── */
+    #rev-preview {
+      padding: 10px 12px;
+      border-radius: 7px;
+    }
+    .rev-label { font-size: 11px; }
+    .rev-value { font-size: 18px; }
+
+    /* ── BATCH INFO ── */
+    #batch-info {
+      padding: 8px 12px;
+      font-size: 11px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    /* ── QUEUE DISPLAY ── */
+    #entry-queue {
+      max-height: 250px;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+    }
+    .queue-title { 
+      font-size: 10px;
+      margin-bottom: 8px;
+    }
+    .queue-item {
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      font-size: 11px;
+      border-radius: 5px;
+      gap: 6px;
+    }
+    .queue-item-desc { font-size: 12px; }
+    .queue-item-meta { 
+      font-size: 10px;
+      margin-top: 2px;
+    }
+    .queue-item-remove {
+      padding: 2px 4px;
+      font-size: 12px;
+    }
+
+    /* ── BUTTONS ── */
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #submit-btn, #add-btn {
+      padding: 12px 14px;
+      min-height: 44px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+    #add-btn {
+      padding: 12px 14px;
+    }
+    .entry-card-footer {
+      padding: 12px 16px;
+      gap: 8px;
+      flex-direction: column;
+    }
+    #save-feedback { font-size: 12px; }
+
+    /* ── MY SUBMISSIONS SIDEBAR ── */
+    #my-submissions {
+      padding: 16px;
+      border-radius: 10px;
+    }
+    #my-feed-scope { 
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    #my-feed-count { 
+      font-size: 24px;
+    }
+    #my-feed-summary { 
+      font-size: 10px;
+      margin-top: 6px;
+    }
+    #my-feed-list {
+      max-height: 300px;
+      gap: 6px;
+    }
+    .feed-item {
+      padding: 8px 10px;
+      border-radius: 6px;
+      gap: 6px;
+    }
+    .feed-item-top { gap: 6px; }
+    .feed-item-desc { font-size: 12px; }
+    .feed-item-rev { 
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .feed-item-meta {
+      font-size: 10px;
+      gap: 3px;
+      margin-top: 2px;
+    }
+    .feed-item-note { 
+      font-size: 10px;
+      margin-top: 3px;
+    }
+
+    /* ── CONSOLIDATED VIEW ── */
+    .summary-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .sumcard {
+      padding: 12px;
+      border-radius: 8px;
+    }
+    .sumcard-label { font-size: 10px; }
+    .sumcard-val { font-size: 18px; }
+    .sumcard-icon { font-size: 20px; }
+
+    /* ── CARDS ── */
+    .card {
+      padding: 14px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .card-title { 
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    /* ── PASSWORD MODAL ── */
+    #pwd-modal {
+      width: 90vw;
+      max-width: 100%;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    #pwd-modal h2 { font-size: 16px; }
+    #pwd-modal p { font-size: 13px; }
+    .modal-field-label { font-size: 11px; }
+    #pwd-name, #pwd-input {
+      padding: 11px 12px;
+      font-size: 13px;
+      min-height: 44px;
+      border-radius: 8px;
+    }
+    #pwd-submit, #pwd-cancel {
+      min-height: 44px;
+      font-size: 13px;
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    /* ── PREVIEW MODAL ── */
+    #preview-modal {
+      width: 95vw;
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 12px;
+    }
+    #preview-header { padding: 16px; }
+    #preview-title { font-size: 14px; }
+    #preview-subtitle { font-size: 11px; }
+    #preview-table-wrap {
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    #preview-footer {
+      padding: 12px;
+      gap: 8px;
+      flex-direction: column;
+    }
+    #preview-cancel-btn, #preview-download-btn {
+      min-height: 40px;
+      font-size: 12px;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    /* ── ERROR BAR ── */
+    #error-bar {
+      padding: 12px;
+      font-size: 12px;
+    }
+    #error-msg { font-size: 12px; }
+
+    /* ── TABLES ── */
+    .con-tbl {
+      font-size: 11px;
+    }
+    .con-tbl th, .con-tbl td {
+      padding: 6px 4px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    /* ── EXTRA SMALL SCREENS ── */
+    html { font-size: 12px; }
+    
+    .logo-icon { width: 30px; height: 30px; }
+    .logo-text { font-size: 12px; }
+    
+    .nav-btn {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+    
+    .two-col {
+      grid-template-columns: 1fr;
+    }
+    
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .entry-card-footer {
+      flex-direction: column;
+    }
+    
+    .btn-group {
+      flex-direction: column;
+    }
+    
+    #submit-btn, #add-btn {
+      width: 100%;
+    }
+    
+    .feed-item { padding: 6px 8px; }
+    .queue-item { padding: 6px 8px; }
+  }
+
+  /* ── LANDSCAPE MOBILE ── */
+  @media (max-height: 600px) {
+    #entry-card { max-height: 80vh; overflow-y: auto; }
+    #entry-queue { max-height: 150px; }
+    #my-feed-list { max-height: 150px; }
+  }
 </style>
 </head>
 <body>
